@@ -1,5 +1,9 @@
 // ReMemory Recovery Tool - Browser-based recovery using native JavaScript crypto
 
+// BarcodeDetector polyfill - provides QR scanning in browsers without native support
+import { registerPolyfill } from './barcode-detector';
+registerPolyfill();
+
 import type {
   RecoveryState,
   PersonalizationData,
