@@ -76,6 +76,18 @@ test.describe('Browser Recovery Tool', () => {
     await recovery.expectContactItem('Carol');
   });
 
+  test('email addresses in contact list are mailto links', async ({ page }) => {
+    const bundleDir = extractBundle(bundlesDir, 'Alice');
+    const recovery = new RecoveryPage(page, bundleDir);
+
+    await recovery.open();
+
+    // Bob's email should be a tappable mailto: link
+    const bobContact = page.locator('.contact-item').filter({ hasText: 'Bob' }).locator('.contact-info a');
+    await expect(bobContact).toHaveAttribute('href', 'mailto:bob@test.com');
+    await expect(bobContact).toHaveText('bob@test.com');
+  });
+
   test('contact list updates when shares are collected', async ({ page }) => {
     const [aliceDir, bobDir] = extractBundles(bundlesDir, ['Alice', 'Bob']);
     const recovery = new RecoveryPage(page, aliceDir);

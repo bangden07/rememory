@@ -18,6 +18,15 @@ declare const t: TranslationFunction;
   // Import shared utilities
   const { escapeHtml, formatSize, toast, showInlineError, clearInlineError } = window.rememoryUtils;
 
+  // Wrap email addresses in mailto: links. Input must already be HTML-escaped.
+  const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+  function linkifyEmail(escaped: string): string {
+    return escaped.replace(EMAIL_RE, (match) => {
+      const clean = match.replace(/\.+$/, '');
+      return `<a href="mailto:${clean}">${clean}</a>`;
+    });
+  }
+
   // State
   const state: RecoveryState = {
     shares: [],
@@ -328,7 +337,7 @@ declare const t: TranslationFunction;
         item.dataset.shareIndex = String(friend.shareIndex);
       }
 
-      const contactInfo = friend.contact ? escapeHtml(friend.contact) : '';
+      const contactInfo = friend.contact ? linkifyEmail(escapeHtml(friend.contact)) : '';
 
       item.innerHTML = `
         <div class="checkbox"></div>
