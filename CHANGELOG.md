@@ -4,6 +4,10 @@ All notable changes to ReMemory are documented here.
 
 ## Unreleased
 
+## v0.0.14 — 2026-02-19
+
+- **Improved Docs**: improve guides on the website. Also updated demo bundles so it contains 5 friends instead of 3.
+
 ## v0.0.13 — 2026-02-18
 
 - **Simpler recovery tool** — The recovery tool (`recover.html`) no longer relies on WebAssembly. It now uses plain JavaScript, making it smaller, faster to load, and more likely to work in browsers for decades to come. The CLI and bundle creation still use Go, but recovery — the part your friends will use — is now built on simpler, more universal technology.
