@@ -236,6 +236,7 @@ ReMemory isn't the first tool to use Shamir's Secret Sharing. Its focus is makin
 | **[cedws/amnesia](https://github.com/cedws/amnesia)** | CLI | Text/data streams | Shamir's SSS + argon2id | JSON file (Q&A-based, single user) | No — requires CLI | Yes | No |
 | **[henrysdev/Haystack](https://github.com/henrysdev/Haystack)** | CLI | Files | Shamir's SSS | Encrypted file fragments | No — requires CLI | Yes | No |
 | **[antonio-ivanovski/shared-secret-encrypt](https://github.com/antonio-ivanovski/shared-secret-encrypt)** ([site](https://shared-secret-encrypt.tote.mk/)) | Web app | Text only | Shamir's SSS + AES-GCM | Base58-encoded shares + encrypted message | Partial — web UI for decrypt | Yes (client-side, can save HTML) | No |
+| **[MinorGlitch/ethernity](https://github.com/MinorGlitch/ethernity)** | CLI (Python) | Files | Shamir's SSS + AES-256-GCM | Printable PDFs with QR codes + text fallback, bundled browser recovery kit | Partial — scan QR or type text | Yes | No |
 
 #### Other approaches
 
@@ -248,7 +249,7 @@ ReMemory isn't the first tool to use Shamir's Secret Sharing. Its focus is makin
 
 **Key takeaways:**
 
-- Most tools only handle **text or passphrases** — [eljojo/rememory](https://github.com/eljojo/rememory), both horcrux projects, [henrysdev/Haystack](https://github.com/henrysdev/Haystack), [cyphar/paperback](https://github.com/cyphar/paperback), and [msolomon/keybearer](https://github.com/msolomon/keybearer) are the few that handle actual files.
+- Most tools only handle **text or passphrases** — [eljojo/rememory](https://github.com/eljojo/rememory), both horcrux projects, [henrysdev/Haystack](https://github.com/henrysdev/Haystack), [cyphar/paperback](https://github.com/cyphar/paperback), [MinorGlitch/ethernity](https://github.com/MinorGlitch/ethernity), and [msolomon/keybearer](https://github.com/msolomon/keybearer) are the few that handle actual files.
 - Only [eljojo/rememory](https://github.com/eljojo/rememory) generates a **self-contained recovery tool** (`recover.html`) bundled with each piece — no installation, no internet, no CLI needed.
 - Only [eljojo/rememory](https://github.com/eljojo/rememory) includes **contact details** in each bundle so friends know how to reach each other during recovery.
 - [paritytech/banana_split](https://github.com/paritytech/banana_split) and [cyphar/paperback](https://github.com/cyphar/paperback) output **QR codes** for printing, which is great for paper-based backups of short secrets.
