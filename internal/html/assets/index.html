@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="ReMemory {{VERSION}}">
   <title>ReMemory - Split a secret among people you trust</title>
   <meta name="description" content="Encrypt files and split the key among people you trust. No servers, no accounts. Recovery works offline, forever.">
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="ReMemory - Split a secret among people you trust">
   <meta property="og:description" content="Encrypt files and split the key among people you trust. No servers, no accounts. Recovery works offline, forever.">
-  <meta property="og:image" content="https://eljojo.github.io/rememory/screenshots/recovery-1.png">
+  <meta property="og:image" content="{{GITHUB_PAGES}}/screenshots/recovery-1.png">
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="ReMemory - Split a secret among people you trust">
   <meta name="twitter:description" content="Encrypt files and split the key among people you trust. No servers, no accounts. Recovery works offline, forever.">
-  <meta name="twitter:image" content="https://eljojo.github.io/rememory/screenshots/recovery-1.png">
+  <meta name="twitter:image" content="{{GITHUB_PAGES}}/screenshots/recovery-1.png">
   <style>{{STYLES}}</style>
   <style>
     a {
@@ -311,8 +312,8 @@
       <div class="links">
         <a href="maker.html">Create bundles</a>
         <a href="docs.html">Read the guide</a>
-        <a href="https://github.com/eljojo/rememory/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
-        <a href="https://github.com/eljojo/rememory" target="_blank">Source on GitHub</a>
+        <a href="{{GITHUB_REPO}}/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+        <a href="{{GITHUB_REPO}}" target="_blank">Source on GitHub</a>
       </div>
     </section>
 
@@ -362,7 +363,7 @@
     <section class="try-it">
       <h2>See how it works</h2>
       <ol>
-        <li><a href="https://github.com/eljojo/rememory/releases/latest/download/demo-bundles.zip">Download the demo bundles</a></li>
+        <li><a href="{{GITHUB_REPO}}/releases/latest/download/demo-bundles.zip">Download the demo bundles</a></li>
         <li>Open <code>bundle-alice/recover.html</code> in your browser</li>
         <li>Drag Bob's and Camila's README files onto the page</li>
         <li>When enough pieces are added, the files unlock</li>
@@ -374,8 +375,8 @@
       <h2>On trust and verification</h2>
       <ul>
         <li>Recovery works without this project existing — each bundle is self-contained</li>
-        <li>The code is open source — <a href="https://github.com/eljojo/rememory" target="_blank">read it on GitHub</a></li>
-        <li>A <a href="https://github.com/eljojo/rememory/blob/main/docs/security-review.md" target="_blank">security review</a> explains the cryptographic choices</li>
+        <li>The code is open source — <a href="{{GITHUB_REPO}}" target="_blank">read it on GitHub</a></li>
+        <li>A <a href="{{GITHUB_REPO}}/blob/main/docs/security-review.md" target="_blank">security review</a> explains the cryptographic choices</li>
         <li>Everything runs locally. Your files never leave your device</li>
         <li>Try the demo bundles before using it with real secrets</li>
         <li>Encryption uses <a href="https://github.com/FiloSottile/age" target="_blank">age</a> — a modern, well-regarded tool</li>
@@ -402,10 +403,10 @@
 
   <footer>
     <p>
-      <a href="https://github.com/eljojo/rememory" target="_blank">Source Code</a> ·
+      <a href="{{GITHUB_REPO}}" target="_blank">Source Code</a> ·
       <a href="{{GITHUB_URL}}" target="_blank">Download CLI</a> ·
       <a href="docs.html">Documentation</a> ·
-      <a href="https://github.com/eljojo/rememory/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+      <a href="{{GITHUB_REPO}}/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
     </p>
     <p class="version">{{VERSION}}</p>
   </footer>
