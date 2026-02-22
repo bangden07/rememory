@@ -63,5 +63,20 @@
   "threshold_guidance": "Überlege, wer zur gleichen Zeit erreichbar sein könnte. Eine niedrigere Zahl ist nachsichtiger, wenn jemand nicht verfügbar ist.",
   "nav_about": "Über",
   "nav_guide": "Anleitung",
-  "nav_recover": "Wiederherstellen"
+  "nav_recover": "Wiederherstellen",
+  "mode_simple": "Einfach",
+  "mode_advanced": "Erweitert",
+  "timelock_label": "Zeitsperre hinzufügen",
+  "timelock_experimental": "experimentell",
+  "timelock_hint": "Auch mit genügend Teilen bleiben die Dateien bis zu diesem Datum gesperrt.",
+  "timelock_learn_more": "Wie funktioniert das?",
+  "timelock_value_label": "Sperren für:",
+  "timelock_minutes": "Minuten",
+  "timelock_hours": "Stunden",
+  "timelock_days": "Tage",
+  "timelock_weeks": "Wochen",
+  "timelock_months": "Monate",
+  "timelock_years": "Jahre",
+  "timelock_preview": "Öffnet nach dem {0}",
+  "timelock_encrypting": "Zeitsperre wird angewendet..."
 }

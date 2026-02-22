@@ -30,6 +30,25 @@ export interface BundleCreateResult {
   bundles?: GeneratedBundle[];
 }
 
+export interface ArchiveCreateResult {
+  error?: string;
+  data?: Uint8Array;
+}
+
+export interface BundleFromArchiveConfig {
+  projectName: string;
+  threshold: number;
+  friends: FriendInput[];
+  archiveData: Uint8Array;
+  version: string;
+  githubURL: string;
+  anonymous?: boolean;
+  defaultLanguage?: string;
+  tlockRound?: number;
+  tlockUnlock?: string;
+  tlockChain?: string;
+}
+
 // ============================================
 // Project Types
 // ============================================
@@ -69,6 +88,42 @@ export interface PersonalizationData {
   total: number;
   language?: string;
   manifestB64?: string; // Base64-encoded MANIFEST.age (when small enough to embed)
+  tlockEnabled?: boolean; // Signals tlock-js is included for time-lock decryption
+}
+
+// ============================================
+// Tlock Types (for time-lock encryption)
+// ============================================
+
+export interface TlockMeta {
+  v: number;
+  method: string;
+  round: number;
+  unlock: string;
+  chain: string;
+}
+
+export interface ManifestMeta {
+  v: number;
+  rememory: string;
+  tlock?: TlockMeta;
+}
+
+export interface ManifestMetaResult {
+  meta: ManifestMeta;
+  ciphertext: Uint8Array;
+}
+
+export interface RememoryTlock {
+  encrypt(plaintext: Uint8Array, roundNumber: number): Promise<Uint8Array>;
+  decrypt(ciphertext: Uint8Array): Promise<Uint8Array>;
+  isRoundAvailable(roundNumber: number): Promise<boolean>;
+  roundForTime(target: Date): number;
+  timeForRound(round: number): Date;
+  parseManifestMeta(data: Uint8Array): ManifestMetaResult | null;
+  QUICKNET_CHAIN_HASH: string;
+  QUICKNET_GENESIS: number;
+  QUICKNET_PERIOD: number;
 }
 
 // ============================================
@@ -86,6 +141,8 @@ export interface RecoveryState {
   recovering: boolean;
   recoveryComplete: boolean;
   decryptedArchive?: Uint8Array;
+  manifestMeta?: ManifestMeta | null;
+  manifestCiphertext?: Uint8Array | null; // Inner ciphertext after stripping envelope
 }
 
 export interface CreationState {
@@ -97,6 +154,9 @@ export interface CreationState {
   wasmReady: boolean;
   generating: boolean;
   generationComplete: boolean;
+  tlockEnabled: boolean;
+  tlockValue: number;
+  tlockUnit: string;
 }
 
 // ============================================
@@ -133,6 +193,8 @@ declare global {
 
     // Creation functions (create.wasm, used by maker.html)
     rememoryCreateBundles(config: BundleConfig): BundleCreateResult;
+    rememoryCreateArchive(files: BundleFile[]): ArchiveCreateResult;
+    rememoryCreateBundlesFromArchive(config: BundleFromArchiveConfig): BundleCreateResult;
     rememoryParseProjectYAML(yaml: string): ProjectParseResult;
 
     // Shared utilities (exposed by shared.ts)
@@ -149,6 +211,9 @@ declare global {
 
     // Personalization data (embedded in recover.html)
     PERSONALIZATION?: PersonalizationData | null;
+
+    // Tlock API (time-lock encryption, conditionally included)
+    rememoryTlock?: RememoryTlock;
 
     // Embedded constants
     WASM_BINARY?: string;

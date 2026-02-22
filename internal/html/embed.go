@@ -30,6 +30,11 @@ var makerHTMLTemplate string
 //go:embed assets/create-app.js
 var createAppJS string
 
+// Tlock JavaScript (time-lock encryption/decryption using drand)
+
+//go:embed assets/tlock.js
+var tlockJS string
+
 // Static page templates (no WASM needed)
 
 //go:embed assets/index.html

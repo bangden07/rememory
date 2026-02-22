@@ -13,7 +13,6 @@
   "decrypt_btn": "Unlock & Recover",
   "download_btn": "Download archive",
   "no_manifest": "No archive added yet",
-  "works_offline": "Works fully offline",
   "need_help": "Need help?",
   "download_cli": "Download CLI tool from GitHub",
   "need_more": "{0} more pieces needed",
@@ -85,5 +84,13 @@
   "action_try_different_shares": "Try different pieces",
   "nav_about": "About",
   "nav_create": "Create Bundles",
-  "nav_guide": "Guide"
+  "nav_guide": "Guide",
+  "tlock_in_minutes": "in {0} minutes",
+  "tlock_in_one_minute": "in about a minute",
+  "tlock_decrypting": "Unlocking time lock...",
+  "tlock_waiting_title": "Time lock active",
+  "tlock_waiting_message": "Opens {0}. Just wait, or come back later.",
+  "tlock_waiting_message_relative": "Opens {0}. Just wait.",
+  "tlock_network_message": "Opening requires a brief internet connection.",
+  "tlock_no_support": "This archive is time-locked. Use the recover.html from your bundle to open it."
 }

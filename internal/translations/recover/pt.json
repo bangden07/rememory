@@ -13,7 +13,6 @@
   "decrypt_btn": "Desbloquear & Recuperar",
   "download_btn": "Baixar o arquivo",
   "no_manifest": "Nenhum arquivo adicionado ainda",
-  "works_offline": "Isso funciona completamente offline",
   "need_help": "Precisa de ajuda?",
   "download_cli": "Baixar ferramenta CLI do GitHub",
   "need_more": "Aguardando {0} mais partes",
@@ -85,5 +84,13 @@
   "action_try_different_shares": "Tentar partes diferentes",
   "nav_about": "Sobre",
   "nav_create": "Criar pacotes",
-  "nav_guide": "Guia"
+  "nav_guide": "Guia",
+  "tlock_in_minutes": "em {0} minutos",
+  "tlock_in_one_minute": "em cerca de um minuto",
+  "tlock_decrypting": "Desbloqueando o bloqueio temporal...",
+  "tlock_waiting_title": "Bloqueio temporal ativo",
+  "tlock_waiting_message": "Abre em {0}. Aguarde, ou volte depois.",
+  "tlock_waiting_message_relative": "Abre {0}. Aguarde.",
+  "tlock_network_message": "Para abrir é necessária uma breve conexão com a internet.",
+  "tlock_no_support": "Este arquivo tem um bloqueio temporal. Use o recover.html do seu pacote para abri-lo."
 }

@@ -13,7 +13,6 @@
   "decrypt_btn": "Desbloquear y recuperar",
   "download_btn": "Descargar el archivo",
   "no_manifest": "Aún no se ha subido ningún archivo",
-  "works_offline": "Funciona completamente sin internet",
   "need_help": "¿Necesitas ayuda?",
   "download_cli": "Descarga la herramienta CLI desde GitHub",
   "need_more": "Faltan {0} partes",
@@ -85,5 +84,13 @@
   "action_try_different_shares": "Probar otras partes",
   "nav_about": "Acerca de",
   "nav_create": "Crear kits",
-  "nav_guide": "Manual"
+  "nav_guide": "Manual",
+  "tlock_in_minutes": "en {0} minutos",
+  "tlock_in_one_minute": "en un minuto",
+  "tlock_decrypting": "Desbloqueando el bloqueo temporal...",
+  "tlock_waiting_title": "Bloqueo temporal activo",
+  "tlock_waiting_message": "Se abre el {0}. Espera, o vuelve después.",
+  "tlock_waiting_message_relative": "Se abre {0}. Solo espera.",
+  "tlock_network_message": "Para abrir se necesita una breve conexión a internet.",
+  "tlock_no_support": "Este archivo tiene un bloqueo temporal. Usa el recover.html de tu kit para abrirlo."
 }

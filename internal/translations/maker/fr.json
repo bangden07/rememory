@@ -63,5 +63,20 @@
   "threshold_guidance": "Pensez à qui pourrait être joignable en même temps. Un nombre plus bas pardonne mieux l'absence de quelqu'un.",
   "nav_about": "À propos",
   "nav_guide": "Guide",
-  "nav_recover": "Récupérer"
+  "nav_recover": "Récupérer",
+  "mode_simple": "Simple",
+  "mode_advanced": "Avancé",
+  "timelock_label": "Ajouter un verrou temporel",
+  "timelock_experimental": "expérimental",
+  "timelock_hint": "Même avec suffisamment de parts, les fichiers restent verrouillés jusqu'à cette date.",
+  "timelock_learn_more": "Comment ça marche ?",
+  "timelock_value_label": "Verrouiller pour :",
+  "timelock_minutes": "minutes",
+  "timelock_hours": "heures",
+  "timelock_days": "jours",
+  "timelock_weeks": "semaines",
+  "timelock_months": "mois",
+  "timelock_years": "ans",
+  "timelock_preview": "Ouvre après le {0}",
+  "timelock_encrypting": "Application du verrou temporel..."
 }

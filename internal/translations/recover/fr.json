@@ -13,7 +13,6 @@
   "decrypt_btn": "Déverrouiller et récupérer",
   "download_btn": "Télécharger l'archive",
   "no_manifest": "Aucune archive ajoutée pour le moment",
-  "works_offline": "Fonctionne entièrement hors ligne",
   "need_help": "Besoin d'aide ?",
   "download_cli": "Télécharger l'outil CLI depuis GitHub",
   "need_more": "Il manque encore {0} parts",
@@ -85,5 +84,13 @@
   "action_try_different_shares": "Essayer d'autres parts",
   "nav_about": "À propos",
   "nav_create": "Créer",
-  "nav_guide": "Guide"
+  "nav_guide": "Guide",
+  "tlock_in_minutes": "dans {0} minutes",
+  "tlock_in_one_minute": "dans environ une minute",
+  "tlock_decrypting": "Déverrouillage temporel en cours...",
+  "tlock_waiting_title": "Verrouillage temporel actif",
+  "tlock_waiting_message": "S'ouvre le {0}. Patientez, ou revenez plus tard.",
+  "tlock_waiting_message_relative": "S'ouvre {0}. Patientez.",
+  "tlock_network_message": "L'ouverture nécessite une brève connexion internet.",
+  "tlock_no_support": "Cette archive est verrouillée dans le temps. Utilisez le recover.html de votre enveloppe pour l'ouvrir."
 }

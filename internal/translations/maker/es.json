@@ -63,5 +63,20 @@
   "threshold_guidance": "Piensa en quién podría estar disponible al mismo tiempo. Un número menor es más flexible si alguien no está disponible.",
   "nav_about": "Acerca de",
   "nav_guide": "Manual",
-  "nav_recover": "Recuperar"
+  "nav_recover": "Recuperar",
+  "mode_simple": "Simple",
+  "mode_advanced": "Avanzado",
+  "timelock_label": "Agregar una cerradura temporal",
+  "timelock_experimental": "experimental",
+  "timelock_hint": "Incluso con suficientes piezas, los archivos permanecen bloqueados hasta esta fecha.",
+  "timelock_learn_more": "¿Cómo funciona?",
+  "timelock_value_label": "Bloquear por:",
+  "timelock_minutes": "minutos",
+  "timelock_hours": "horas",
+  "timelock_days": "días",
+  "timelock_weeks": "semanas",
+  "timelock_months": "meses",
+  "timelock_years": "años",
+  "timelock_preview": "Se abre después del {0}",
+  "timelock_encrypting": "Aplicando cerradura temporal..."
 }

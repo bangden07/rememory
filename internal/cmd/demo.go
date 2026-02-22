@@ -117,7 +117,7 @@ Note: In a real project, these would be your actual sensitive credentials.
 	fmt.Printf("  %s manifest/passwords.txt\n", green("✓"))
 	fmt.Println()
 
-	if err := sealProject(p, "", false); err != nil {
+	if err := sealProject(p, "", false, ""); err != nil {
 		return err
 	}
 

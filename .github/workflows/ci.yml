@@ -39,6 +39,9 @@ jobs:
       - name: Test
         run: go test -v ./...
 
+      - name: Test tlock integration
+        run: make test-tlock
+
       - name: Lint
         run: make lint
 

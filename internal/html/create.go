@@ -12,7 +12,8 @@ import (
 // Note: recover.html uses native JavaScript crypto, not WASM.
 // version is the rememory version string.
 // githubURL is the URL to download CLI binaries.
-func GenerateMakerHTML(createWASMBytes []byte, version, githubURL string) string {
+// noTlock omits tlock-js from the maker (disables time-lock UI).
+func GenerateMakerHTML(createWASMBytes []byte, version, githubURL string, noTlock bool) string {
 	html := makerHTMLTemplate
 
 	// Embed translations
@@ -30,6 +31,16 @@ func GenerateMakerHTML(createWASMBytes []byte, version, githubURL string) string
 
 	// Embed shared.js + create-app.js
 	html = strings.Replace(html, "{{CREATE_APP_JS}}", sharedJS+"\n"+createAppJS, 1)
+
+	// Include tlock.js unless explicitly disabled
+	if !noTlock {
+		html = strings.Replace(html, "{{TLOCK_JS}}", `<script nonce="{{CSP_NONCE}}">`+tlockJS+`</script>`, 1)
+		html = strings.Replace(html, "{{CSP_CONNECT_SRC}}",
+			"blob: https://api.drand.sh/ https://api2.drand.sh/ https://api3.drand.sh/ https://drand.cloudflare.com/", 1)
+	} else {
+		html = strings.Replace(html, "{{TLOCK_JS}}", "", 1)
+		html = strings.Replace(html, "{{CSP_CONNECT_SRC}}", "blob:", 1)
+	}
 
 	// Embed create.wasm as gzip-compressed base64 (this runs in the browser)
 	createWASMB64 := compressAndEncode(createWASMBytes)

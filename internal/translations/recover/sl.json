@@ -13,7 +13,6 @@
   "decrypt_btn": "Odkleni in obnovi",
   "download_btn": "Prenesi arhiv",
   "no_manifest": "Arhiv še ni dodan",
-  "works_offline": "Deluje popolnoma brez povezave",
   "need_help": "Potrebujete pomoč?",
   "download_cli": "Prenesite CLI orodje z GitHub",
   "need_more": "Manjka še {0} delov",
@@ -85,5 +84,13 @@
   "action_try_different_shares": "Poskusi druge dele",
   "nav_about": "O projektu",
   "nav_create": "Ustvari",
-  "nav_guide": "Vodič"
+  "nav_guide": "Vodič",
+  "tlock_in_minutes": "čez {0} minut",
+  "tlock_in_one_minute": "čez približno minuto",
+  "tlock_decrypting": "Odklepanje časovne zaklepa...",
+  "tlock_waiting_title": "Časovna zaklep je aktivna",
+  "tlock_waiting_message": "Odpre se {0}. Počakajte ali se vrnite kasneje.",
+  "tlock_waiting_message_relative": "Odpre se {0}. Počakajte.",
+  "tlock_network_message": "Za odpiranje je potrebna kratka internetna povezava.",
+  "tlock_no_support": "Ta arhiv je časovno zaklenjen. Uporabite recover.html iz svojega svežnja, da ga odprete."
 }

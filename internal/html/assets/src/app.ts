@@ -9,7 +9,8 @@ import type {
   PersonalizationData,
   FriendInfo,
   ToastAction,
-  TranslationFunction
+  TranslationFunction,
+  ManifestMeta,
 } from './types';
 
 // Native crypto imports
@@ -60,6 +61,8 @@ type UIShare = ParsedShare & { isHolder?: boolean };
     recoveryComplete: false
   };
 
+  let tlockTimer: ReturnType<typeof setInterval> | null = null;
+
   // DOM elements interface
   interface Elements {
     shareDropZone: HTMLElement | null;
@@ -88,6 +91,8 @@ type UIShare = ParsedShare & { isHolder?: boolean };
     qrScannerModal: HTMLElement | null;
     qrVideo: HTMLVideoElement | null;
     qrScannerClose: HTMLButtonElement | null;
+    tlockWaiting: HTMLElement | null;
+    tlockWaitingDate: HTMLElement | null;
   }
 
   // DOM elements
@@ -118,6 +123,8 @@ type UIShare = ParsedShare & { isHolder?: boolean };
     qrScannerModal: document.getElementById('qr-scanner-modal'),
     qrVideo: document.getElementById('qr-video') as HTMLVideoElement | null,
     qrScannerClose: document.getElementById('qr-scanner-close') as HTMLButtonElement | null,
+    tlockWaiting: document.getElementById('tlock-waiting'),
+    tlockWaitingDate: document.getElementById('tlock-waiting-date'),
   };
 
   // Personalization data (embedded in HTML)
@@ -1031,6 +1038,9 @@ type UIShare = ParsedShare & { isHolder?: boolean };
   function showManifestLoaded(filename: string, size: number, source: 'file' | 'bundle' | 'embedded' | 'html' = 'file'): void {
     elements.manifestDropZone?.classList.add('hidden');
 
+    // Detect tlock envelope on manifest data
+    detectTlockEnvelope();
+
     if (elements.manifestStatus) {
       const sourceLabels: Record<string, string> = {
         file: t('loaded'),
@@ -1055,8 +1065,38 @@ type UIShare = ParsedShare & { isHolder?: boolean };
     }
   }
 
+  function detectTlockEnvelope(): void {
+    if (!state.manifest) return;
+    const tlock = window.rememoryTlock;
+    if (!tlock) {
+      // No tlock-js available — check if this manifest has a tlock header anyway
+      if (state.manifest.length > 0 && state.manifest[0] === 0x7B) {
+        // Try manual parse of the first line
+        const nl = state.manifest.indexOf(0x0A);
+        if (nl > 0) {
+          try {
+            const header = new TextDecoder().decode(state.manifest.slice(0, nl));
+            const meta = JSON.parse(header) as ManifestMeta;
+            if (meta.v && meta.tlock) {
+              state.manifestMeta = meta;
+              state.manifestCiphertext = state.manifest.slice(nl + 1);
+            }
+          } catch { /* not a valid envelope */ }
+        }
+      }
+      return;
+    }
+    const result = tlock.parseManifestMeta(state.manifest);
+    if (result) {
+      state.manifestMeta = result.meta;
+      state.manifestCiphertext = result.ciphertext;
+    }
+  }
+
   function clearManifest(): void {
     state.manifest = null;
+    state.manifestMeta = null;
+    state.manifestCiphertext = null;
     elements.manifestStatus?.classList.add('hidden');
     elements.manifestStatus?.classList.remove('loaded');
     elements.manifestDropZone?.classList.remove('hidden');
@@ -1073,10 +1113,21 @@ type UIShare = ParsedShare & { isHolder?: boolean };
   }
 
   function checkRecoverReady(): void {
-    const ready = state.manifest !== null && (
+    const hasEnoughShares = state.manifest !== null && (
       (state.threshold > 0 && state.shares.length >= state.threshold) ||
       (state.threshold === 0 && state.shares.length >= 2)
     );
+
+    // Check if tlock time is in the future
+    const tlockFuture = isTlockInFuture();
+
+    if (tlockFuture && hasEnoughShares) {
+      showTlockWaiting();
+    } else {
+      hideTlockWaiting();
+    }
+
+    const ready = hasEnoughShares && !tlockFuture;
 
     if (elements.recoverBtn) {
       elements.recoverBtn.disabled = !ready;
@@ -1084,6 +1135,57 @@ type UIShare = ParsedShare & { isHolder?: boolean };
 
     if (ready && !state.recovering && !state.recoveryComplete) {
       startRecovery();
+    }
+  }
+
+  function formatUnlockDate(unlockDate: Date): { text: string; relative: boolean } {
+    const minutesUntil = (unlockDate.getTime() - Date.now()) / 60000;
+    if (minutesUntil > 0 && minutesUntil < 60) {
+      const m = Math.ceil(minutesUntil);
+      return { text: t(m === 1 ? 'tlock_in_one_minute' : 'tlock_in_minutes', m), relative: true };
+    }
+    const hoursUntil = minutesUntil / 60;
+    const text = hoursUntil > 0 && hoursUntil < 24
+      ? unlockDate.toLocaleString()
+      : unlockDate.toLocaleDateString();
+    return { text, relative: false };
+  }
+
+  function isTlockInFuture(): boolean {
+    if (!state.manifestMeta?.tlock) return false;
+    const unlockDate = new Date(state.manifestMeta.tlock.unlock);
+    return unlockDate > new Date();
+  }
+
+  function showTlockWaiting(): void {
+    if (!elements.tlockWaiting) return;
+    const tlock = state.manifestMeta?.tlock;
+    if (!tlock) return;
+
+    const unlockDate = new Date(tlock.unlock);
+    if (elements.tlockWaitingDate) {
+      const fmt = formatUnlockDate(unlockDate);
+      elements.tlockWaitingDate.textContent = fmt.relative
+        ? t('tlock_waiting_message_relative', fmt.text)
+        : t('tlock_waiting_message', fmt.text);
+    }
+    elements.tlockWaiting.classList.remove('hidden');
+    if (elements.recoverBtn) elements.recoverBtn.classList.add('hidden');
+
+    // Re-check every 5 seconds so recovery auto-starts once time passes
+    if (!tlockTimer) {
+      tlockTimer = setInterval(() => checkRecoverReady(), 5000);
+    }
+  }
+
+  function hideTlockWaiting(): void {
+    if (tlockTimer) {
+      clearInterval(tlockTimer);
+      tlockTimer = null;
+    }
+    elements.tlockWaiting?.classList.add('hidden');
+    if (elements.recoverBtn && !state.recoveryComplete) {
+      elements.recoverBtn.classList.remove('hidden');
     }
   }
 
@@ -1120,15 +1222,37 @@ type UIShare = ParsedShare & { isHolder?: boolean };
 
       setProgress(30);
 
+      // Strip envelope if present — use the inner age ciphertext
+      const ageCiphertext = state.manifestMeta
+        ? state.manifestCiphertext!
+        : state.manifest!;
+
+      // age-decrypt (outer layer)
       setStatus(t('decrypting'));
-      const decrypted = await decrypt(state.manifest!, passphrase);
+      let archive = await decrypt(ageCiphertext, passphrase);
+
+      setProgress(50);
+
+      // If tlock: tlock-decrypt (inner layer)
+      if (state.manifestMeta?.tlock) {
+        if (!window.rememoryTlock) {
+          toast.error(
+            t('tlock_no_support'),
+            t('tlock_no_support'),
+            t('tlock_no_support')
+          );
+          throw new Error('Time-lock decryption not available');
+        }
+        setStatus(t('tlock_decrypting'));
+        archive = await window.rememoryTlock.decrypt(archive);
+      }
 
       setProgress(60);
 
-      state.decryptedArchive = decrypted;
+      state.decryptedArchive = archive;
 
       setStatus(t('reading'));
-      const files = await extractArchive(decrypted);
+      const files = await extractArchive(archive);
 
       setProgress(90);
 

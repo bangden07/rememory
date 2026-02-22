@@ -1135,6 +1135,158 @@ func TestManifestEmbedding(t *testing.T) {
 	})
 }
 
+// TestTlockFullWorkflow tests the complete seal-with-timelock and recover pipeline.
+// Gated by REMEMORY_TEST_TLOCK=1 because it requires internet access (drand network).
+func TestTlockFullWorkflow(t *testing.T) {
+	if os.Getenv("REMEMORY_TEST_TLOCK") != "1" {
+		t.Skip("set REMEMORY_TEST_TLOCK=1 to run tlock integration tests (requires internet)")
+	}
+
+	baseDir := t.TempDir()
+	projectDir := filepath.Join(baseDir, "test-tlock-project")
+
+	friends := []project.Friend{
+		{Name: "Alice", Contact: "alice@example.com"},
+		{Name: "Bob", Contact: "bob@example.com"},
+		{Name: "Carol", Contact: "carol@example.com"},
+	}
+	threshold := 2
+
+	p, err := project.New(projectDir, "test-tlock", threshold, friends)
+	if err != nil {
+		t.Fatalf("creating project: %v", err)
+	}
+
+	// Add secret content
+	secretContent := "Tlock integration test secret: the answer is 42"
+	if err := os.WriteFile(filepath.Join(p.ManifestPath(), "secrets.txt"), []byte(secretContent), 0644); err != nil {
+		t.Fatalf("writing secret: %v", err)
+	}
+
+	// Archive manifest
+	var archiveBuf bytes.Buffer
+	if _, err := manifest.ArchiveZip(&archiveBuf, p.ManifestPath()); err != nil {
+		t.Fatalf("archiving: %v", err)
+	}
+
+	// Tlock-encrypt to a recently-past round (inner layer)
+	pastTime := time.Now().Add(-1 * time.Minute)
+	tlockRound := core.RoundForTime(pastTime)
+	unlockTime := core.TimeForRound(tlockRound)
+
+	var tlockBuf bytes.Buffer
+	if err := core.TlockEncrypt(&tlockBuf, bytes.NewReader(archiveBuf.Bytes()), tlockRound); err != nil {
+		t.Fatalf("tlock encrypt: %v", err)
+	}
+
+	// Age-encrypt the tlock ciphertext (outer layer)
+	raw, passphrase, err := crypto.GenerateRawPassphrase(crypto.DefaultPassphraseBytes)
+	if err != nil {
+		t.Fatalf("generating passphrase: %v", err)
+	}
+
+	var encryptedBuf bytes.Buffer
+	if err := core.Encrypt(&encryptedBuf, bytes.NewReader(tlockBuf.Bytes()), passphrase); err != nil {
+		t.Fatalf("encrypting: %v", err)
+	}
+
+	// Prepend metadata envelope
+	meta := &core.ManifestMeta{
+		V:        core.ManifestMetaVersion,
+		Rememory: "v0.0.0-test",
+		Tlock: &core.TlockMeta{
+			V:      core.TlockMetaVersion,
+			Method: core.TlockMethodQuicknet,
+			Round:  tlockRound,
+			Unlock: unlockTime.UTC().Format(time.RFC3339),
+			Chain:  core.QuicknetChainHash,
+		},
+	}
+
+	var manifestBuf bytes.Buffer
+	if err := core.WriteManifestMeta(&manifestBuf, meta, bytes.NewReader(encryptedBuf.Bytes())); err != nil {
+		t.Fatalf("writing manifest meta: %v", err)
+	}
+	manifestData := manifestBuf.Bytes()
+
+	// Verify MANIFEST.age starts with JSON
+	if !core.HasManifestMeta(manifestData) {
+		t.Fatal("MANIFEST.age should start with JSON envelope")
+	}
+
+	// Parse and verify the envelope
+	parsedMeta, inner, err := core.ParseManifestMeta(manifestData)
+	if err != nil {
+		t.Fatalf("parsing manifest meta: %v", err)
+	}
+
+	if parsedMeta.V != core.ManifestMetaVersion {
+		t.Errorf("meta version: got %d, want %d", parsedMeta.V, core.ManifestMetaVersion)
+	}
+	if parsedMeta.Tlock == nil {
+		t.Fatal("expected tlock metadata")
+	}
+	if parsedMeta.Tlock.Round != tlockRound {
+		t.Errorf("tlock round: got %d, want %d", parsedMeta.Tlock.Round, tlockRound)
+	}
+	if parsedMeta.Tlock.Method != core.TlockMethodQuicknet {
+		t.Errorf("tlock method: got %q, want %q", parsedMeta.Tlock.Method, core.TlockMethodQuicknet)
+	}
+
+	// Recovery: strip envelope → combine shares → age-decrypt → tlock-decrypt → extract
+
+	// Split passphrase
+	shares, err := core.Split(raw, len(friends), threshold)
+	if err != nil {
+		t.Fatalf("splitting: %v", err)
+	}
+
+	// Combine threshold shares
+	recoveredRaw, err := core.Combine(shares[:threshold])
+	if err != nil {
+		t.Fatalf("combining: %v", err)
+	}
+	recoveredPass := base64.RawURLEncoding.EncodeToString(recoveredRaw)
+
+	// Age-decrypt (outer layer)
+	var ageDecrypted bytes.Buffer
+	if err := core.Decrypt(&ageDecrypted, bytes.NewReader(inner), recoveredPass); err != nil {
+		t.Fatalf("age decrypting: %v", err)
+	}
+
+	// Tlock-decrypt (inner layer — the round is in the past, so this should work)
+	var tlockDecrypted bytes.Buffer
+	if err := core.TlockDecrypt(&tlockDecrypted, bytes.NewReader(ageDecrypted.Bytes())); err != nil {
+		t.Fatalf("tlock decrypting: %v", err)
+	}
+
+	// Extract archive
+	extractDir := t.TempDir()
+	extractResult, err := manifest.ExtractAuto(bytes.NewReader(tlockDecrypted.Bytes()), extractDir)
+	if err != nil {
+		t.Fatalf("extracting: %v", err)
+	}
+
+	// Verify content
+	recovered, err := os.ReadFile(filepath.Join(extractResult.Path, "secrets.txt"))
+	if err != nil {
+		t.Fatalf("reading recovered: %v", err)
+	}
+	if string(recovered) != secretContent {
+		t.Errorf("content mismatch: got %q, want %q", recovered, secretContent)
+	}
+}
+
+// TestTlockManifestWithoutTlock verifies that regular manifests (no envelope)
+// are correctly identified as non-tlock.
+func TestTlockManifestWithoutTlock(t *testing.T) {
+	// A regular age-encrypted manifest starts with "age-encryption.org"
+	data := []byte("age-encryption.org/v1\n-> scrypt...")
+	if core.HasManifestMeta(data) {
+		t.Error("regular age data should not be detected as having manifest meta")
+	}
+}
+
 // TestTarGzBackwardCompatibility verifies that manifests created with the old
 // tar.gz format can still be recovered. This is critical for bundles that may
 // have been created with earlier versions of rememory.

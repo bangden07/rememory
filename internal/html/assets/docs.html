@@ -423,6 +423,8 @@
           <li><a href="#cli">CLI Alternative</a></li>
           <li><a href="#anonymous">Anonymous Mode</a></li>
           <li><a href="#multilingual">Multilingual Bundles</a></li>
+          <li><a href="#timelock">Time-Delayed Recovery</a></li>
+          <li class="indent"><a href="#timelock-technical">How It Works</a></li>
         </ul>
       </nav>
     </aside>
@@ -850,7 +852,7 @@
       </ol>
 
       <div class="warning">
-        <strong>Important:</strong> Old pieces still work with old archives. When you send a new bundle, be clear: delete the old one, keep only the new one. No version history, no "just in case."
+        <strong>Important:</strong> Old pieces still work with old archives. When you send a new bundle, be clear: <strong>delete the old one</strong>, keep only the new one. No version history, no "just in case."
       </div>
 
       <p>
@@ -1034,6 +1036,37 @@
         <img src="screenshots/demo-pdf-es/page-2.png" alt="recover.pdf opened in Spanish" onerror="this.parentElement.innerHTML='<div class=\'screenshot-placeholder\'><div class=\'icon\'>📸</div>Screenshot: recover.html opened in a non-English language (e.g. Spanish)</div>'">
         <figcaption>Word lists are translated too (both languages work)</figcaption>
       </figure>
+    </section>
+
+    <section id="timelock" class="doc-section">
+      <h2>Advanced: Time-Delayed Recovery</h2>
+      <p>
+        You can set a waiting period when creating bundles. Even if your friends combine their pieces early, the files stay locked until the date you chose — 30 days, 6 months, a specific date.
+      </p>
+
+      <h3>How to Enable</h3>
+      <p>
+        In the <a href="maker.html">bundle creator</a>, switch to <strong>Advanced</strong> mode and check <strong>Add a time lock</strong>. Choose how long the files should stay locked.
+      </p>
+      <h3>Recovery</h3>
+      <p>
+        When someone opens a time-locked bundle before the date, the recovery tool shows a waiting notice. Once the time passes, recovery proceeds normally.
+      </p>
+      <p>
+        Opening a time-locked archive requires a brief internet connection. Your files aren't sent anywhere — the connection verifies that enough time has passed. Without the time lock, recovery is fully offline.
+      </p>
+
+      <div class="warning">
+        <strong>Experimental.</strong> Time-delayed recovery depends on the <a href="https://www.cloudflare.com/en-ca/leagueofentropy/" target="_blank">League of Entropy</a>, a distributed network operated by serious organizations around the world. If this network stops operating before a time lock expires, that archive becomes unrecoverable. Bundles without a time lock are not affected.
+      </div>
+
+      <h3 id="timelock-technical">How It Works</h3>
+      <p>
+        The League of Entropy produces a new cryptographic value every 3 seconds. Each value is numbered. You can predict which number corresponds to a given time, but the value for that number can't be produced early — not by anyone, including the network operators.
+      </p>
+      <p>
+        When you create a time-locked bundle, the archive is encrypted to a specific future value. The key to open it doesn't exist yet. It will come from the network when that moment arrives.
+      </p>
     </section>
 
     <footer class="docs-footer">

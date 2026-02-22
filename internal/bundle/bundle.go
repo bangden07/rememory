@@ -24,6 +24,7 @@ type Config struct {
 	GitHubReleaseURL string // URL to GitHub release for CLI download
 	RecoveryURL      string // Optional: base URL for QR code (e.g. "https://example.com/recover.html")
 	NoEmbedManifest  bool   // If true, do not embed MANIFEST.age in recover.html even when small enough
+	TlockEnabled     bool   // If true, bundles include tlock-js for time-lock decryption
 }
 
 // GenerateAll creates bundles for all friends in the project.
@@ -90,6 +91,7 @@ func GenerateAll(p *project.Project, cfg Config) error {
 			Threshold:    p.Threshold,
 			Total:        len(p.Friends),
 			Language:     lang,
+			TlockEnabled: cfg.TlockEnabled,
 		}
 
 		// Embed manifest in recover.html when small enough and not disabled

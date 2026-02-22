@@ -63,5 +63,20 @@
   "threshold_guidance": "Think about who might be reachable at the same time. A lower number is more forgiving if someone is unavailable.",
   "nav_about": "About",
   "nav_guide": "Guide",
-  "nav_recover": "Recover"
+  "nav_recover": "Recover",
+  "mode_simple": "Simple",
+  "mode_advanced": "Advanced",
+  "timelock_label": "Add a time lock",
+  "timelock_experimental": "experimental",
+  "timelock_hint": "Even with enough pieces, the files stay locked until this date.",
+  "timelock_learn_more": "How does this work?",
+  "timelock_value_label": "Lock for:",
+  "timelock_minutes": "minutes",
+  "timelock_hours": "hours",
+  "timelock_days": "days",
+  "timelock_weeks": "weeks",
+  "timelock_months": "months",
+  "timelock_years": "years",
+  "timelock_preview": "Opens after {0}",
+  "timelock_encrypting": "Applying time lock..."
 }

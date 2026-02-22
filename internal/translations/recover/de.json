@@ -13,7 +13,6 @@
   "decrypt_btn": "Entsperren & Wiederherstellen",
   "download_btn": "Archiv herunterladen",
   "no_manifest": "Noch kein Archiv geladen",
-  "works_offline": "Funktioniert komplett offline",
   "need_help": "Brauchst du Hilfe?",
   "download_cli": "CLI-Tool von GitHub herunterladen",
   "need_more": "Es fehlen noch {0} Teile",
@@ -85,5 +84,13 @@
   "action_try_different_shares": "Andere Teile probieren",
   "nav_about": "Über",
   "nav_create": "Erstellen",
-  "nav_guide": "Anleitung"
+  "nav_guide": "Anleitung",
+  "tlock_in_minutes": "in {0} Minuten",
+  "tlock_in_one_minute": "in etwa einer Minute",
+  "tlock_decrypting": "Zeitsperre wird aufgehoben...",
+  "tlock_waiting_title": "Zeitsperre aktiv",
+  "tlock_waiting_message": "Öffnet am {0}. Einfach warten oder später wiederkommen.",
+  "tlock_waiting_message_relative": "Öffnet {0}. Einfach warten.",
+  "tlock_network_message": "Zum Öffnen wird kurz eine Internetverbindung benötigt.",
+  "tlock_no_support": "Dieses Archiv ist zeitgesperrt. Verwende die recover.html aus deinem Paket, um es zu öffnen."
 }
