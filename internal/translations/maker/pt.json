@@ -79,6 +79,7 @@
   "timelock_months": "meses",
   "timelock_years": "anos",
   "timelock_preview": "Abre após {0}",
+  "timelock_max_exceeded": "Dois anos é o bloqueio mais longo que a ferramenta web suporta. Para durações maiores, use a linha de comando.",
   "timelock_network_hint": "A recuperação precisará de uma breve conexão à internet para verificar o bloqueio por data.",
   "timelock_encrypting": "Aplicando bloqueio por data...",
   "next_steps_link": "O que fazer agora",

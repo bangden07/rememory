@@ -79,6 +79,7 @@
   "timelock_months": "個月",
   "timelock_years": "年",
   "timelock_preview": "{0} 之後可開啟",
+  "timelock_max_exceeded": "網頁工具最長支援兩年的時間鎖。如需更長的期間，請使用命令列工具。",
   "timelock_network_hint": "復原時需要短暫的網路連線來驗證時間鎖。",
   "timelock_encrypting": "正在套用時間鎖...",
   "next_steps_link": "接下來該做什麼",

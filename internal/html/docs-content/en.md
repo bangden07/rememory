@@ -540,7 +540,9 @@ You can set a waiting period when creating bundles. Even if your friends combine
 
 ### How to Enable
 
-In the [bundle creator](maker.html), switch to **Advanced** mode and check **Add a time lock**. Choose how long the files should stay locked.
+In the [bundle creator](maker.html), switch to **Advanced** mode and check **Add a time lock**. Choose how long the files should stay locked — up to two years.
+
+The two-year limit is deliberate. Time locks depend on the League of Entropy continuing to operate, and we don't think it's responsible to lock your files behind a longer bet on external infrastructure. If you need a longer duration and understand the trade-off, the CLI has no cap: `rememory seal --timelock 5y`.
 
 <figure class="screenshot">
 <img src="screenshots/en/tlock-setup.png" alt="Time lock setup in Advanced mode">

@@ -705,18 +705,26 @@ declare const __SELFHOSTED__: boolean;
   }
 
   // Compute a future date from a duration value and unit (e.g. 5, 'min' → 5 minutes from now).
+  // Maximum timelock duration: 2 years. The League of Entropy beacon is
+  // reliable infrastructure, but we can't responsibly promise it will run
+  // longer than that. The CLI has no cap for advanced users who accept the risk.
+  const MAX_TIMELOCK_MS = 2 * 365.25 * 86400000;
+
   function computeTimelockDate(value: number, unit: string): Date | null {
     if (value <= 0) return null;
     const now = new Date();
+    let target: Date;
     switch (unit) {
-      case 'min': return new Date(now.getTime() + value * 60000);
-      case 'h': return new Date(now.getTime() + value * 3600000);
-      case 'd': return new Date(now.getTime() + value * 86400000);
-      case 'w': return new Date(now.getTime() + value * 7 * 86400000);
-      case 'm': { const d = new Date(now); d.setMonth(d.getMonth() + value); return d; }
-      case 'y': { const d = new Date(now); d.setFullYear(d.getFullYear() + value); return d; }
+      case 'min': target = new Date(now.getTime() + value * 60000); break;
+      case 'h': target = new Date(now.getTime() + value * 3600000); break;
+      case 'd': target = new Date(now.getTime() + value * 86400000); break;
+      case 'w': target = new Date(now.getTime() + value * 7 * 86400000); break;
+      case 'm': { target = new Date(now); target.setMonth(target.getMonth() + value); break; }
+      case 'y': { target = new Date(now); target.setFullYear(target.getFullYear() + value); break; }
       default: return null;
     }
+    if (target.getTime() - now.getTime() > MAX_TIMELOCK_MS) return null;
+    return target;
   }
 
   // Format a tlock unlock date for display. Shows time if within 24 hours, date-only otherwise.
@@ -782,6 +790,10 @@ declare const __SELFHOSTED__: boolean;
       const target = computeTimelockDate(state.tlockValue, state.tlockUnit);
       if (target) {
         datePreview.textContent = t('timelock_preview', formatTimelockDate(target));
+        datePreview.style.color = '';
+      } else if (state.tlockValue > 0) {
+        datePreview.textContent = t('timelock_max_exceeded');
+        datePreview.style.color = '#8A8480';
       }
     }
 
@@ -976,7 +988,7 @@ declare const __SELFHOSTED__: boolean;
         await sleep(100);
 
         const targetDate = computeTimelockDate(state.tlockValue, state.tlockUnit);
-        if (!targetDate) throw new Error('Invalid time lock date');
+        if (!targetDate) throw new Error(t('timelock_max_exceeded'));
         const result = await encryptForDate(archiveData, targetDate);
         archiveData = result.ciphertext;
         tlockRound = result.round;

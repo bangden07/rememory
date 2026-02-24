@@ -79,6 +79,7 @@
   "timelock_months": "mois",
   "timelock_years": "ans",
   "timelock_preview": "Ouvre après le {0}",
+  "timelock_max_exceeded": "Deux ans est la durée maximale du verrou temporel dans l'outil web. Pour des durées plus longues, utilisez la ligne de commande.",
   "timelock_network_hint": "La récupération nécessitera une brève connexion internet pour vérifier le verrou temporel.",
   "timelock_encrypting": "Application du verrou temporel...",
   "next_steps_link": "Et maintenant",

@@ -79,6 +79,7 @@
   "timelock_months": "Monate",
   "timelock_years": "Jahre",
   "timelock_preview": "Öffnet nach dem {0}",
+  "timelock_max_exceeded": "Zwei Jahre ist die längste Zeitsperre, die das Web-Tool unterstützt. Für längere Zeiträume verwende die Kommandozeile.",
   "timelock_network_hint": "Zur Wiederherstellung wird eine kurze Internetverbindung benötigt, um die Zeitsperre zu prüfen.",
   "timelock_encrypting": "Zeitsperre wird angewendet...",
   "next_steps_link": "Wie es weitergeht",

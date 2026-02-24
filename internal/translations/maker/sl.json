@@ -79,6 +79,7 @@
   "timelock_months": "mesecev",
   "timelock_years": "let",
   "timelock_preview": "Odpre se po {0}",
+  "timelock_max_exceeded": "Dve leti je najdaljše časovno zaklepanje, ki ga spletno orodje podpira. Za daljša obdobja uporabite ukazno vrstico.",
   "timelock_network_hint": "Obnovitev bo potrebovala kratko internetno povezavo za preverjanje časovnega zaklepanja.",
   "timelock_encrypting": "Izvajanje časovnega zaklepanja...",
   "next_steps_link": "Naslednji koraki",
