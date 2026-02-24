@@ -234,6 +234,29 @@ func TestPathTraversalPrevention(t *testing.T) {
 	}
 }
 
+func TestManifestPathTraversal(t *testing.T) {
+	srv := newTestServer(t)
+	setupPassword(t, srv, "traversalpass")
+
+	// Upload a valid bundle so the server is in a working state
+	uploadManifest(t, srv, []byte("real-manifest"), map[string]any{"name": "legit"})
+
+	// Attempt to fetch manifest with path traversal ID
+	for _, malicious := range []string{
+		"../../etc/passwd",
+		"../admin.age",
+		"..%2F..%2Fetc%2Fpasswd",
+		"not-a-uuid",
+	} {
+		req := httptest.NewRequest("GET", "/api/bundle/manifest?id="+malicious, nil)
+		w := httptest.NewRecorder()
+		srv.ServeHTTP(w, req)
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("expected 400 for malicious id %q, got %d", malicious, w.Code)
+		}
+	}
+}
+
 func TestConcurrentAccess(t *testing.T) {
 	srv := newTestServer(t)
 	setupPassword(t, srv, "concurrentpass")

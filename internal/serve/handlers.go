@@ -212,6 +212,10 @@ func (s *Server) handleAPIManifest(w http.ResponseWriter, r *http.Request) {
 	var bundleID string
 
 	if id := r.URL.Query().Get("id"); id != "" {
+		if !isValidUUID(id) {
+			http.Error(w, "Invalid bundle ID.", http.StatusBadRequest)
+			return
+		}
 		bundleID = id
 	} else {
 		// Fall back to latest bundle
