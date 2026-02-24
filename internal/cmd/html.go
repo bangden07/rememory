@@ -81,7 +81,7 @@ func runHTML(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("create.wasm not embedded - rebuild with 'make build'")
 		}
 		noTlock, _ := cmd.Flags().GetBool("no-timelock")
-		content = html.GenerateMakerHTML(createWASM, version, githubURL, noTlock)
+		content = html.GenerateMakerHTML(createWASM, version, githubURL, html.MakerHTMLOptions{NoTlock: noTlock})
 
 	case "site":
 		return runHTMLSite(cmd, githubURL)
@@ -129,7 +129,7 @@ func runHTMLSite(cmd *cobra.Command, githubURL string) error {
 
 	files := []file{
 		{"index.html", html.GenerateIndexHTML(version, githubURL)},
-		{"maker.html", html.GenerateMakerHTML(createWASM, version, githubURL, noTlock)},
+		{"maker.html", html.GenerateMakerHTML(createWASM, version, githubURL, html.MakerHTMLOptions{NoTlock: noTlock})},
 		{"docs.html", html.GenerateDocsHTML(version, githubURL, "en")},
 		{"recover.html", html.GenerateRecoverHTML(version, githubURL, nil, html.RecoverHTMLOptions{NoTlock: noTlock})},
 	}

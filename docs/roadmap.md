@@ -1,0 +1,17 @@
+# Self-Hosted Roadmap
+
+Future ideas for the self-hosted mode. These are possibilities, not commitments.
+
+## Planned
+
+- **Docker image** — Pre-built container for easier deployment
+
+## Ideas
+
+- **Server-side project.yml** — Store the project configuration (friend names, threshold) on the server so it can be reloaded across sessions
+- **Admin-only navigation** — Hide the create/delete UI from non-admin visitors
+- **Bundles without manifest** - for online self-hosted use
+- **Multi-manifest support** — Store and manage multiple manifests on one server
+- **Backup/export** — Download the entire data directory as a single archive
+- **OIDC/OAuth** — Built-in authentication instead of relying on auth proxies
+- **Custom branding** — Upload a logo, set a project name shown in the header

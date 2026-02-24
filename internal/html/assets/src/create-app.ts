@@ -11,6 +11,10 @@ import type {
 declare const t: TranslationFunction;
 declare let currentLang: string;
 
+// Compile-time flag: esbuild replaces this with true or false.
+// When false, guarded code blocks are eliminated entirely from the output.
+declare const __SELFHOSTED__: boolean;
+
 (function() {
   'use strict';
 
@@ -244,6 +248,12 @@ declare let currentLang: string;
         if (window.rememoryReady) {
           clearTimeout(timeout);
           state.wasmReady = true;
+          // Freeze WASM functions so they can't be intercepted by injected scripts
+          if (typeof Object.freeze === 'function') {
+            Object.freeze(window.rememoryCreateBundlesFromArchive);
+            Object.freeze(window.rememoryCreateArchive);
+            Object.freeze(window.rememoryParseProjectYAML);
+          }
           elements.wasmLoadingIndicator?.classList.add('hidden');
           checkGenerateReady();
           resolve();
@@ -908,6 +918,38 @@ declare let currentLang: string;
       elements.bundlesList?.classList.remove('hidden');
       elements.downloadAllSection?.classList.remove('hidden');
 
+      if (__SELFHOSTED__) {
+        // Only the encrypted manifest and non-secret metadata.
+        // Bundles (which contain shares) are intentionally excluded.
+        if (result.manifest && typeof window.rememoryOnBundlesCreated === 'function') {
+          window.rememoryOnBundlesCreated(result.manifest, {
+            name: state.projectName,
+            threshold: state.threshold,
+            total: friends.length,
+          });
+        }
+
+        // Hide "Save project.yml" (not useful in selfhosted mode yet)
+        // and add a link to the recovery page instead.
+        const nextStepsHint = document.querySelector('.next-steps-hint');
+        if (nextStepsHint) {
+          const yamlLink = nextStepsHint.querySelector('#download-yaml-btn');
+          if (yamlLink) {
+            // Remove the separator before the yaml link and the link itself
+            const prev = yamlLink.previousSibling;
+            if (prev && prev.nodeType === Node.TEXT_NODE) prev.remove();
+            yamlLink.remove();
+          }
+
+          const sep = document.createTextNode(' \u00b7 ');
+          const link = document.createElement('a');
+          link.href = '/recover';
+          link.textContent = 'Go to recovery page';
+          nextStepsHint.appendChild(sep);
+          nextStepsHint.appendChild(link);
+        }
+      }
+
     } catch (err) {
       const errorMsg = (err instanceof Error) ? err.message : String(err);
       setStatus(t('error', errorMsg), 'error');
@@ -1049,6 +1091,51 @@ declare let currentLang: string;
 
   function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // ============================================
+  // Selfhosted Server Integration
+  // ============================================
+
+  if (__SELFHOSTED__) {
+    const selfhostedConfig = window.SELFHOSTED_CONFIG;
+
+    // Register the callback that fires after bundle generation.
+    // Receives only the encrypted manifest and non-secret metadata — never bundles/shares.
+    window.rememoryOnBundlesCreated = async function(manifest: Uint8Array, meta: {
+      name: string;
+      threshold: number;
+      total: number;
+    }): Promise<void> {
+      if (selfhostedConfig && manifest.length > selfhostedConfig.maxManifestSize) {
+        toast.error(
+          t('error_title'),
+          `Manifest is too large (${formatSize(manifest.length)}). The server accepts up to ${formatSize(selfhostedConfig.maxManifestSize)}.`,
+        );
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('manifest', new Blob([manifest as unknown as BlobPart]), 'MANIFEST.age');
+        formData.append('meta', JSON.stringify(meta));
+
+        const resp = await fetch('/api/bundle', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!resp.ok) {
+          const text = await resp.text();
+          throw new Error(text || `Server returned ${resp.status}`);
+        }
+
+        toast.success(t('complete'), 'Saved to server.');
+      } catch (err) {
+        const msg = (err instanceof Error) ? err.message : String(err);
+        toast.warning(t('error_title'), `Could not save to server: ${msg}`);
+      }
+    };
   }
 
   // ============================================

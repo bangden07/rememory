@@ -34,6 +34,10 @@ import {
 // Translation function (defined in HTML)
 declare const t: TranslationFunction;
 
+// Compile-time flag: esbuild replaces this with true or false.
+// When false, guarded code blocks are eliminated entirely from the output.
+declare const __SELFHOSTED__: boolean;
+
 // Extended share type with UI-specific fields
 type UIShare = ParsedShare & { isHolder?: boolean };
 
@@ -1037,7 +1041,7 @@ type UIShare = ParsedShare & { isHolder?: boolean };
   // Manifest UI
   // ============================================
 
-  function showManifestLoaded(filename: string, size: number, source: 'file' | 'bundle' | 'embedded' | 'html' = 'file'): void {
+  function showManifestLoaded(filename: string, size: number, source: 'file' | 'bundle' | 'embedded' | 'html' | 'server' = 'file'): void {
     elements.manifestDropZone?.classList.add('hidden');
 
     if (elements.manifestStatus) {
@@ -1046,6 +1050,7 @@ type UIShare = ParsedShare & { isHolder?: boolean };
         bundle: t('manifest_loaded_bundle'),
         embedded: t('manifest_loaded_embedded'),
         html: t('manifest_loaded_html'),
+        server: t('loaded'),
       };
       const sourceLabel = sourceLabels[source] || t('loaded');
       elements.manifestStatus.innerHTML = `
@@ -1428,6 +1433,19 @@ type UIShare = ParsedShare & { isHolder?: boolean };
     });
   }
 
+  // ============================================
+  // Selfhosted Server Integration
+  // ============================================
+
+  if (__SELFHOSTED__) {
+    // Expose public manifest loading API for programmatic use
+    window.rememoryLoadManifest = function(data: Uint8Array, name?: string): void {
+      state.manifest = data;
+      showManifestLoaded(name || 'MANIFEST.age', data.length, 'server');
+      checkRecoverReady();
+    };
+  }
+
   // Global export for HTML templates
   window.rememoryUpdateUI = function(): void {
     updateSharesUI();
@@ -1435,5 +1453,91 @@ type UIShare = ParsedShare & { isHolder?: boolean };
   };
 
   // Start
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', async () => {
+    await init();
+
+    // Auto-fetch manifest from server (selfhosted only)
+    if (__SELFHOSTED__) {
+      const selfhostedConfig = window.SELFHOSTED_CONFIG;
+      if (selfhostedConfig?.hasManifest) {
+        try {
+          const resp = await fetch('/api/bundle/manifest');
+          if (resp.ok) {
+            const data = new Uint8Array(await resp.arrayBuffer());
+            if (data.length > 0 && !state.manifest) {
+              window.rememoryLoadManifest!(data, 'MANIFEST.age');
+            }
+          }
+        } catch {
+          // Server not reachable — user can still load manifest manually
+        }
+
+        // Admin section: delete bundle from server
+        const footer = document.querySelector('footer');
+        if (footer) {
+          const admin = document.createElement('details');
+          admin.className = 'admin-section';
+          admin.style.cssText = 'max-width: 720px; margin: 2rem auto; padding: 0 1rem;';
+
+          const summary = document.createElement('summary');
+          summary.textContent = 'Admin';
+          summary.style.cssText = 'cursor: pointer; color: var(--text-secondary, #6B6560); font-size: 0.875rem;';
+          admin.appendChild(summary);
+
+          const inner = document.createElement('div');
+          inner.style.cssText = 'margin-top: 0.75rem;';
+          inner.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <input type="password" class="admin-password" placeholder="Admin password"
+                style="padding: 0.375rem 0.75rem; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 0.875rem; width: 14rem;">
+              <button type="button" class="admin-delete-btn"
+                style="padding: 0.375rem 0.75rem; background: none; border: 1px solid var(--border, #ddd); border-radius: 4px; color: var(--text-secondary, #6B6560); font-size: 0.875rem; cursor: pointer;">
+                Delete bundle
+              </button>
+            </div>
+            <div class="admin-error" style="color: #c44; font-size: 0.8125rem; margin-top: 0.5rem;"></div>
+          `;
+          admin.appendChild(inner);
+
+          footer.parentNode!.insertBefore(admin, footer);
+
+          const deleteBtn = inner.querySelector('.admin-delete-btn') as HTMLButtonElement;
+          const passwordInput = inner.querySelector('.admin-password') as HTMLInputElement;
+          const errorDiv = inner.querySelector('.admin-error') as HTMLElement;
+
+          deleteBtn.addEventListener('click', async () => {
+            const password = passwordInput.value;
+            if (!password) {
+              errorDiv.textContent = 'Enter the admin password.';
+              return;
+            }
+
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = 'Deleting...';
+            errorDiv.textContent = '';
+
+            try {
+              const resp = await fetch('/api/bundle', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password }),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(text || `Server returned ${resp.status}`);
+              }
+
+              window.location.href = '/create';
+            } catch (err) {
+              const msg = (err instanceof Error) ? err.message : String(err);
+              errorDiv.textContent = msg;
+              deleteBtn.disabled = false;
+              deleteBtn.textContent = 'Delete bundle';
+            }
+          });
+        }
+      }
+    }
+  });
 })();

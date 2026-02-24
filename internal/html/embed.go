@@ -30,6 +30,15 @@ var makerHTMLTemplate string
 //go:embed assets/create-app.js
 var createAppJS string
 
+// Selfhosted variants of the main app scripts (with __SELFHOSTED__=true).
+// These include server integration code that is absent from the static variants.
+
+//go:embed assets/create-app-selfhosted.js
+var createAppSelfhostedJS string
+
+//go:embed assets/app-selfhosted.js
+var appSelfhostedJS string
+
 // Tlock JavaScript (time-lock encryption/decryption using drand)
 // Split into creation (maker.html) and recovery (recover.html) bundles.
 

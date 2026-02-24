@@ -594,3 +594,9 @@ In the web-based bundle creator (maker.html), each friend entry has a **Bundle l
 - **README.txt**: All instructions, warnings, and section headings
 - **README.pdf**: Same content as README.txt in PDF format
 - **recover.html**: Opens in the friend's language by default (they can still switch)
+
+## Self-Hosting
+
+ReMemory can run as a web app on your own server with `rememory serve`. This lets you create and recover bundles through a browser without installing the CLI. The server stores the encrypted archive so friends only need their share to recover.
+
+This is an advanced option — the offline bundles are the primary way to use ReMemory and work without any server. See the [self-hosting guide](selfhosted.md) for setup instructions and deployment examples.

@@ -569,3 +569,9 @@ The League of Entropy produces a new cryptographic value every 3 seconds. Each v
 When you create a time-locked bundle, the archive is encrypted to a specific future value. The key to open it doesn't exist yet. It will come from the network when that moment arrives.
 
 For a deeper look at the cryptography behind this, see the [drand timelock encryption documentation](https://docs.drand.love/docs/timelock-encryption/).
+
+## Self-Hosting {#selfhosted}
+
+ReMemory can also run as a web app on your own server using `rememory serve`. The server provides the same creation and recovery tools through a browser. Friends only need their share — the encrypted archive is served automatically.
+
+This is an advanced option for people who already run a homelab or want a shared web UI. The offline bundles remain the primary way to use ReMemory and work without any server. See the [self-hosting guide](https://github.com/eljojo/rememory/blob/main/docs/selfhosted.md) on GitHub for details.

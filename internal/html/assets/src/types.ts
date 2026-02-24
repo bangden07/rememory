@@ -19,6 +19,7 @@ export interface GeneratedBundle {
 export interface BundleCreateResult {
   error?: string;
   bundles?: GeneratedBundle[];
+  manifest?: Uint8Array;
 }
 
 export interface ArchiveCreateResult {
@@ -156,6 +157,15 @@ export interface CreationState {
 }
 
 // ============================================
+// Selfhosted Config (injected by server at render time)
+// ============================================
+
+export interface SelfhostedConfig {
+  maxManifestSize: number;
+  hasManifest: boolean;
+}
+
+// ============================================
 // Toast Types
 // ============================================
 
@@ -217,6 +227,15 @@ declare global {
 
     // Localized README filenames (embedded in recover.html)
     README_NAMES?: string[];
+
+    // Selfhosted mode (only present in selfhosted builds, eliminated in static builds)
+    rememoryOnBundlesCreated?: (manifest: Uint8Array, meta: {
+      name: string;
+      threshold: number;
+      total: number;
+    }) => void;
+    rememoryLoadManifest?: (data: Uint8Array, name?: string) => void;
+    SELFHOSTED_CONFIG?: SelfhostedConfig | null;
 
     // Go WASM runtime (used by maker.html)
     Go: new () => GoInstance;

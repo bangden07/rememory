@@ -1,6 +1,7 @@
 package html
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/eljojo/rememory/internal/core"
@@ -41,13 +42,25 @@ const tlockPanelHTML = `<!-- Advanced: time lock (shown when Advanced tab is act
         </div>
       </div>`
 
+// MakerHTMLOptions holds optional parameters for GenerateMakerHTML.
+type MakerHTMLOptions struct {
+	NoTlock          bool              // Omit tlock-js from the maker (disables time-lock UI)
+	Selfhosted       bool              // Use selfhosted JS variant with server integration
+	SelfhostedConfig *SelfhostedConfig // Config injected into the HTML for selfhosted mode
+}
+
+// SelfhostedConfig holds configuration passed to the selfhosted frontend.
+type SelfhostedConfig struct {
+	MaxManifestSize int  `json:"maxManifestSize"` // Maximum MANIFEST.age size the server accepts
+	HasManifest     bool `json:"hasManifest"`     // Whether a manifest currently exists on the server
+}
+
 // GenerateMakerHTML creates the complete maker.html with all assets embedded.
 // createWASMBytes is the create.wasm binary (runs in browser for bundle creation).
 // Note: recover.html uses native JavaScript crypto, not WASM.
 // version is the rememory version string.
 // githubURL is the URL to download CLI binaries.
-// noTlock omits tlock-js from the maker (disables time-lock UI).
-func GenerateMakerHTML(createWASMBytes []byte, version, githubURL string, noTlock bool) string {
+func GenerateMakerHTML(createWASMBytes []byte, version, githubURL string, opts MakerHTMLOptions) string {
 	html := makerHTMLTemplate
 
 	// Embed translations
@@ -63,22 +76,41 @@ func GenerateMakerHTML(createWASMBytes []byte, version, githubURL string, noTloc
 	// Embed wasm_exec.js
 	html = strings.Replace(html, "{{WASM_EXEC}}", wasmExecJS, 1)
 
-	// Embed shared.js + create-app.js
-	html = strings.Replace(html, "{{CREATE_APP_JS}}", sharedJS+"\n"+createAppJS, 1)
+	// Embed shared.js + create-app.js (selfhosted variant when applicable)
+	appScript := createAppJS
+	if opts.Selfhosted {
+		appScript = createAppSelfhostedJS
+	}
+	html = strings.Replace(html, "{{CREATE_APP_JS}}", sharedJS+"\n"+appScript, 1)
+
+	// Embed selfhosted config (or empty)
+	if opts.Selfhosted && opts.SelfhostedConfig != nil {
+		configJSON, _ := json.Marshal(opts.SelfhostedConfig)
+		html = strings.Replace(html, "{{SELFHOSTED_CONFIG}}", string(configJSON), 1)
+	} else {
+		html = strings.Replace(html, "{{SELFHOSTED_CONFIG}}", "null", 1)
+	}
 
 	// Include tlock-create.js and tlock UI unless explicitly disabled
+	noTlock := opts.NoTlock
+	cspConnectSrc := "blob:"
 	if !noTlock {
 		html = strings.Replace(html, "{{TLOCK_JS}}",
 			drandConfigScript()+`<script nonce="{{CSP_NONCE}}">`+tlockCreateJS+`</script>`, 1)
-		html = strings.Replace(html, "{{CSP_CONNECT_SRC}}", drandCSPConnectSrc(), 1)
+		cspConnectSrc = drandCSPConnectSrc()
 		html = strings.Replace(html, "{{TLOCK_TABS_HTML}}", tlockTabsHTML, 1)
 		html = strings.Replace(html, "{{TLOCK_PANEL_HTML}}", tlockPanelHTML, 1)
 	} else {
 		html = strings.Replace(html, "{{TLOCK_JS}}", "", 1)
-		html = strings.Replace(html, "{{CSP_CONNECT_SRC}}", "blob:", 1)
 		html = strings.Replace(html, "{{TLOCK_TABS_HTML}}", "", 1)
 		html = strings.Replace(html, "{{TLOCK_PANEL_HTML}}", "", 1)
 	}
+
+	// Selfhosted mode needs 'self' for fetch to /api/*
+	if opts.Selfhosted {
+		cspConnectSrc += " 'self'"
+	}
+	html = strings.Replace(html, "{{CSP_CONNECT_SRC}}", cspConnectSrc, 1)
 
 	// Embed create.wasm as gzip-compressed base64 (this runs in the browser)
 	createWASMB64 := compressAndEncode(createWASMBytes)
@@ -89,6 +121,14 @@ func GenerateMakerHTML(createWASMBytes []byte, version, githubURL string, noTloc
 	html = strings.Replace(html, "{{GITHUB_REPO}}", core.GitHubRepo, -1)
 	html = strings.Replace(html, "{{GITHUB_PAGES}}", core.GitHubPages, -1)
 	html = strings.Replace(html, "{{GITHUB_URL}}", githubURL, -1)
+
+	// Selfhosted mode: rewrite nav links to server routes
+	if opts.Selfhosted {
+		html = strings.Replace(html, `href="index.html"`, `href="/about"`, -1)
+		html = strings.Replace(html, `href="maker.html"`, `href="/create"`, -1)
+		html = strings.Replace(html, `href="recover.html"`, `href="/recover"`, -1)
+		html = strings.Replace(html, `href="docs.html"`, `href="/docs"`, -1)
+	}
 
 	// Apply CSP nonce to all script tags
 	html = applyCSPNonce(html)

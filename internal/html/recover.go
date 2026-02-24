@@ -91,7 +91,9 @@ const tlockWaitingHTML = `<style>
 
 // RecoverHTMLOptions holds optional parameters for GenerateRecoverHTML.
 type RecoverHTMLOptions struct {
-	NoTlock bool // Omit tlock-js even from generic recover.html
+	NoTlock          bool              // Omit tlock-js even from generic recover.html
+	Selfhosted       bool              // Use selfhosted JS variant with server integration
+	SelfhostedConfig *SelfhostedConfig // Config injected into the HTML for selfhosted mode
 }
 
 // GenerateRecoverHTML creates the complete recover.html with all assets embedded.
@@ -116,8 +118,26 @@ func GenerateRecoverHTML(version, githubURL string, personalization *Personaliza
 	// Embed styles
 	html = strings.Replace(html, "{{STYLES}}", stylesCSS, 1)
 
-	// Embed shared.js + app.js (native crypto bundled in app.js)
-	html = strings.Replace(html, "{{APP_JS}}", sharedJS+"\n"+appJS, 1)
+	// Embed shared.js + app.js (selfhosted variant when applicable)
+	var appScript string
+	var selfhosted bool
+	if len(opts) > 0 {
+		selfhosted = opts[0].Selfhosted
+	}
+	if selfhosted {
+		appScript = appSelfhostedJS
+	} else {
+		appScript = appJS
+	}
+	html = strings.Replace(html, "{{APP_JS}}", sharedJS+"\n"+appScript, 1)
+
+	// Embed selfhosted config (or null)
+	if selfhosted && len(opts) > 0 && opts[0].SelfhostedConfig != nil {
+		configJSON, _ := json.Marshal(opts[0].SelfhostedConfig)
+		html = strings.Replace(html, "{{SELFHOSTED_CONFIG}}", string(configJSON), 1)
+	} else {
+		html = strings.Replace(html, "{{SELFHOSTED_CONFIG}}", "null", 1)
+	}
 
 	// Include tlock.js when needed:
 	// - Generic/standalone recover.html (personalization == nil): always include so
@@ -134,16 +154,22 @@ func GenerateRecoverHTML(version, githubURL string, personalization *Personaliza
 		noTlock = false
 	}
 	includeTlock := !noTlock && (personalization == nil || personalization.TlockEnabled)
+	var cspConnectSrc string
 	if includeTlock {
 		html = strings.Replace(html, "{{TLOCK_JS}}",
 			drandConfigScript()+`<script nonce="{{CSP_NONCE}}">`+tlockRecoverJS+`</script>`, 1)
-		html = strings.Replace(html, "{{CSP_CONNECT_SRC}}", drandCSPConnectSrc(), 1)
+		cspConnectSrc = drandCSPConnectSrc()
 		html = strings.Replace(html, "{{TLOCK_WAITING_HTML}}", tlockWaitingHTML, 1)
 	} else {
 		html = strings.Replace(html, "{{TLOCK_JS}}", "", 1)
-		html = strings.Replace(html, "{{CSP_CONNECT_SRC}}", "blob:", 1)
+		cspConnectSrc = "blob:"
 		html = strings.Replace(html, "{{TLOCK_WAITING_HTML}}", "", 1)
 	}
+	// Selfhosted mode needs 'self' for fetch to /api/*
+	if selfhosted {
+		cspConnectSrc += " 'self'"
+	}
+	html = strings.Replace(html, "{{CSP_CONNECT_SRC}}", cspConnectSrc, 1)
 
 	// Replace version and GitHub URLs
 	html = strings.Replace(html, "{{VERSION}}", version, -1)
@@ -160,6 +186,14 @@ func GenerateRecoverHTML(version, githubURL string, personalization *Personaliza
 		personalizationJSON = "null"
 	}
 	html = strings.Replace(html, "{{PERSONALIZATION_DATA}}", personalizationJSON, 1)
+
+	// Selfhosted mode: rewrite nav links to server routes
+	if selfhosted {
+		html = strings.Replace(html, `href="index.html"`, `href="/about"`, -1)
+		html = strings.Replace(html, `href="maker.html"`, `href="/create"`, -1)
+		html = strings.Replace(html, `href="recover.html"`, `href="/recover"`, -1)
+		html = strings.Replace(html, `href="docs.html"`, `href="/docs"`, -1)
+	}
 
 	// Apply CSP nonce to all script tags
 	html = applyCSPNonce(html)
