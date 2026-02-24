@@ -29,11 +29,10 @@ func TestStaticHTMLHasNoServerCode(t *testing.T) {
 	// Note: SELFHOSTED_CONFIG = null is allowed (it's inert).
 	// rememoryLoadManifest is now always present (unified JS) but is inert when
 	// SELFHOSTED_CONFIG is null — the fetch only activates on manifestURL.
-	// rememoryOnBundlesCreated is still compile-flag-guarded in create-app.ts.
 	forbidden := []string{
 		"/api/bundle",
 		"/api/setup",
-		"rememoryOnBundlesCreated",
+		"Saved to server",
 	}
 
 	for name, content := range staticPages() {
@@ -41,6 +40,27 @@ func TestStaticHTMLHasNoServerCode(t *testing.T) {
 			if strings.Contains(content, pattern) {
 				t.Errorf("static %s contains server code: found %q", name, pattern)
 			}
+		}
+	}
+}
+
+// TestSelfhostedHTMLHasServerCode verifies that selfhosted HTML builds contain
+// the server integration code that static builds must not have.
+func TestSelfhostedHTMLHasServerCode(t *testing.T) {
+	wasmStub := []byte{0x00, 0x61, 0x73, 0x6d}
+	content := GenerateMakerHTML(wasmStub, MakerHTMLOptions{
+		Selfhosted:       true,
+		SelfhostedConfig: &SelfhostedConfig{MaxManifestSize: 50 << 20},
+	})
+
+	required := []string{
+		"/api/bundle",
+		"Saved to server",
+	}
+
+	for _, pattern := range required {
+		if !strings.Contains(content, pattern) {
+			t.Errorf("selfhosted maker.html missing server code: %q not found", pattern)
 		}
 	}
 }

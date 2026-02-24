@@ -1,8 +1,32 @@
-# Self-Hosting ReMemory
+# Hosting ReMemory
+
+There are two ways to host ReMemory for your friends: **static pages** (simplest) and a **self-hosted server** (full-featured).
+
+## Static pages
+
+The lightest option. Generate a folder with `recover.html` and `MANIFEST.age`, then upload it anywhere that serves files — GitHub Pages, Netlify, an S3 bucket, any web server.
+
+```bash
+rememory seal --pages
+# or after sealing:
+rememory bundle --pages
+```
+
+This creates `output/pages/` in your project. The `recover.html` page fetches `MANIFEST.age` from the same directory automatically. Friends visit the URL, add their shares, and recover. No server-side code runs — it's just static files.
+
+Works well when:
+- You want to give friends a URL instead of (or alongside) a ZIP file
+- You don't need the ability to create bundles from the browser
+- You don't want to run a server
+
+Limitations:
+- Friends still need their shares (from their bundles or README.txt files)
+- No admin interface — you manage files directly
+- No bundle creation in the browser (use the CLI or [maker.html](https://eljojo.github.io/rememory/maker.html))
+
+## Self-hosted server
 
 Run ReMemory as a web app on your own server — create bundles, store encrypted archives, and recover, all from a browser.
-
-## Getting started
 
 ### Docker
 

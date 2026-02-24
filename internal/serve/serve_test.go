@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+// agePrefix is the standard age file header. Test manifests must start with
+// this so the upload handler's format validation accepts them.
+const agePrefix = "age-encryption.org/v1\n"
+
 func newTestServer(t *testing.T) *Server {
 	t.Helper()
 	dir := t.TempDir()
@@ -106,7 +110,7 @@ func TestBundleLifecycle(t *testing.T) {
 	setupPassword(t, srv, "adminpass")
 
 	// Upload a manifest
-	manifest := []byte("fake-encrypted-manifest-data")
+	manifest := []byte(agePrefix + "fake-encrypted-manifest-data")
 	meta := map[string]any{
 		"name":      "test-recovery",
 		"threshold": 2,
@@ -134,8 +138,10 @@ func TestBundleLifecycle(t *testing.T) {
 		t.Error("expected hasManifest=true after upload")
 	}
 
-	// Download manifest
-	req = httptest.NewRequest("GET", "/api/bundle/manifest", nil)
+	bundleID := result["id"].(string)
+
+	// Download manifest by ID
+	req = httptest.NewRequest("GET", "/api/bundle/manifest?id="+bundleID, nil)
 	w = httptest.NewRecorder()
 	srv.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -144,8 +150,6 @@ func TestBundleLifecycle(t *testing.T) {
 	if !bytes.Equal(w.Body.Bytes(), manifest) {
 		t.Error("downloaded manifest doesn't match uploaded")
 	}
-
-	bundleID := result["id"].(string)
 
 	// Delete without ID should fail
 	body := `{"password":"adminpass"}`
@@ -217,11 +221,28 @@ func TestLargeManifest(t *testing.T) {
 		t.Errorf("expected 413 for large manifest, got %d", w.Code)
 	}
 
-	// Upload manifest within limit
-	smallManifest := make([]byte, 512)
+	// Upload manifest within limit (must have valid age header)
+	smallManifest := []byte(agePrefix + "small-test-data")
 	w = uploadManifest(t, srv, smallManifest, nil)
 	if w.Code != http.StatusOK {
 		t.Errorf("expected 200 for small manifest, got %d %s", w.Code, w.Body.String())
+	}
+}
+
+func TestUploadRejectsInvalidFormat(t *testing.T) {
+	srv := newTestServer(t)
+	setupPassword(t, srv, "formatpass")
+
+	// Random data that isn't age or tlock should be rejected
+	w := uploadManifest(t, srv, []byte("not-a-valid-manifest"), nil)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for invalid format, got %d", w.Code)
+	}
+
+	// Empty data should be rejected
+	w = uploadManifest(t, srv, []byte{}, nil)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for empty upload, got %d", w.Code)
 	}
 }
 
@@ -239,7 +260,7 @@ func TestManifestPathTraversal(t *testing.T) {
 	setupPassword(t, srv, "traversalpass")
 
 	// Upload a valid bundle so the server is in a working state
-	uploadManifest(t, srv, []byte("real-manifest"), map[string]any{"name": "legit"})
+	uploadManifest(t, srv, []byte(agePrefix+"real-manifest"), map[string]any{"name": "legit"})
 
 	// Attempt to fetch manifest with path traversal ID
 	for _, malicious := range []string{
@@ -268,7 +289,7 @@ func TestConcurrentAccess(t *testing.T) {
 		wg.Add(1)
 		go func(n int) {
 			defer wg.Done()
-			manifest := []byte(strings.Repeat("x", 100))
+			manifest := []byte(agePrefix + strings.Repeat("x", 100))
 			w := uploadManifest(t, srv, manifest, map[string]any{
 				"name": "concurrent-test",
 			})
@@ -324,7 +345,7 @@ func TestRootPage(t *testing.T) {
 	}
 
 	// After upload: should show home page with bundle data
-	manifest := []byte("test-manifest")
+	manifest := []byte(agePrefix + "test-manifest")
 	uploadManifest(t, srv, manifest, map[string]any{"name": "my-bundle", "threshold": 2, "total": 3})
 	req = httptest.NewRequest("GET", "/", nil)
 	w = httptest.NewRecorder()
@@ -352,9 +373,9 @@ func TestStoreList(t *testing.T) {
 	}
 
 	// Upload two bundles with a pause so timestamps differ
-	uploadManifest(t, srv, []byte("manifest-1"), map[string]any{"name": "first"})
+	uploadManifest(t, srv, []byte(agePrefix+"manifest-1"), map[string]any{"name": "first"})
 	time.Sleep(1100 * time.Millisecond)
-	uploadManifest(t, srv, []byte("manifest-2"), map[string]any{"name": "second"})
+	uploadManifest(t, srv, []byte(agePrefix+"manifest-2"), map[string]any{"name": "second"})
 
 	metas, err = srv.store.List()
 	if err != nil {
@@ -388,7 +409,7 @@ func TestAPIListBundles(t *testing.T) {
 	}
 
 	// Upload and list again
-	uploadManifest(t, srv, []byte("manifest-data"), map[string]any{"name": "test-bundle", "threshold": 2, "total": 3})
+	uploadManifest(t, srv, []byte(agePrefix+"manifest-data"), map[string]any{"name": "test-bundle", "threshold": 2, "total": 3})
 
 	req = httptest.NewRequest("GET", "/api/bundles", nil)
 	w = httptest.NewRecorder()
@@ -407,14 +428,14 @@ func TestManifestByID(t *testing.T) {
 	setupPassword(t, srv, "manifestpass1")
 
 	// Upload two bundles with a pause so timestamps differ
-	w1 := uploadManifest(t, srv, []byte("manifest-A"), map[string]any{"name": "first"})
+	w1 := uploadManifest(t, srv, []byte(agePrefix+"manifest-A"), map[string]any{"name": "first"})
 	var r1 map[string]any
 	json.NewDecoder(w1.Body).Decode(&r1)
 	id1 := r1["id"].(string)
 
 	time.Sleep(1100 * time.Millisecond)
 
-	w2 := uploadManifest(t, srv, []byte("manifest-B"), map[string]any{"name": "second"})
+	w2 := uploadManifest(t, srv, []byte(agePrefix+"manifest-B"), map[string]any{"name": "second"})
 	var r2 map[string]any
 	json.NewDecoder(w2.Body).Decode(&r2)
 	id2 := r2["id"].(string)
@@ -426,7 +447,7 @@ func TestManifestByID(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
-	if !bytes.Equal(w.Body.Bytes(), []byte("manifest-A")) {
+	if !bytes.Equal(w.Body.Bytes(), []byte(agePrefix+"manifest-A")) {
 		t.Error("expected manifest-A for first ID")
 	}
 
@@ -434,16 +455,16 @@ func TestManifestByID(t *testing.T) {
 	req = httptest.NewRequest("GET", "/api/bundle/manifest?id="+id2, nil)
 	w = httptest.NewRecorder()
 	srv.ServeHTTP(w, req)
-	if !bytes.Equal(w.Body.Bytes(), []byte("manifest-B")) {
+	if !bytes.Equal(w.Body.Bytes(), []byte(agePrefix+"manifest-B")) {
 		t.Error("expected manifest-B for second ID")
 	}
 
-	// Fetch without ID returns latest (second)
+	// Fetch without ID returns 400
 	req = httptest.NewRequest("GET", "/api/bundle/manifest", nil)
 	w = httptest.NewRecorder()
 	srv.ServeHTTP(w, req)
-	if !bytes.Equal(w.Body.Bytes(), []byte("manifest-B")) {
-		t.Error("expected manifest-B for latest")
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for missing ID, got %d", w.Code)
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/eljojo/rememory/internal/core"
 	"github.com/eljojo/rememory/internal/html"
 )
 
@@ -54,10 +55,14 @@ func (s *Server) handleRecover(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Build manifest URL server-side so the frontend doesn't parse query params
-	manifestURL := "/api/bundle/manifest"
+	// Resolve the bundle ID: use the query param if provided, otherwise
+	// fall back to the latest bundle. The API endpoint requires an explicit ID,
+	// but the controller resolves it here so /recover always works.
+	var manifestURL string
 	if id := r.URL.Query().Get("id"); id != "" {
-		manifestURL += "?id=" + url.QueryEscape(id)
+		manifestURL = "/api/bundle/manifest?id=" + url.QueryEscape(id)
+	} else if latest, err := s.store.Latest(); err == nil && latest != nil {
+		manifestURL = "/api/bundle/manifest?id=" + url.QueryEscape(latest.ID)
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -167,6 +172,15 @@ func (s *Server) handleAPISaveBundle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate that the upload is a recognizable age-encrypted file:
+	// either a plain age file (header prefix) or a tlock container (ZIP with tlock.json).
+	const ageHeader = "age-encryption.org/v1\n"
+	isAge := len(manifest) >= len(ageHeader) && string(manifest[:len(ageHeader)]) == ageHeader
+	if !isAge && !core.IsTlockContainer(manifest) {
+		http.Error(w, "Not a valid age-encrypted file.", http.StatusBadRequest)
+		return
+	}
+
 	metaStr := r.FormValue("meta")
 	var meta BundleMeta
 	if metaStr != "" {
@@ -216,22 +230,14 @@ func (s *Server) handleAPIDeleteBundle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleAPIManifest(w http.ResponseWriter, r *http.Request) {
-	var bundleID string
-
-	if id := r.URL.Query().Get("id"); id != "" {
-		if !isValidUUID(id) {
-			http.Error(w, "Invalid bundle ID.", http.StatusBadRequest)
-			return
-		}
-		bundleID = id
-	} else {
-		// Fall back to latest bundle
-		latest, err := s.store.Latest()
-		if err != nil || latest == nil {
-			http.Error(w, "No manifest available.", http.StatusNotFound)
-			return
-		}
-		bundleID = latest.ID
+	bundleID := r.URL.Query().Get("id")
+	if bundleID == "" {
+		http.Error(w, "Missing bundle ID.", http.StatusBadRequest)
+		return
+	}
+	if !isValidUUID(bundleID) {
+		http.Error(w, "Invalid bundle ID.", http.StatusBadRequest)
+		return
 	}
 
 	manifestPath := s.store.ManifestPath(bundleID)

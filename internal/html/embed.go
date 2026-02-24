@@ -38,7 +38,7 @@ var makerHTMLTemplate string
 var createAppJS string
 
 // Selfhosted variant of the create-app script (with __SELFHOSTED__=true).
-// Includes rememoryOnBundlesCreated for server integration.
+// Includes server integration for manifest upload.
 
 //go:embed assets/create-app-selfhosted.js
 var createAppSelfhostedJS string

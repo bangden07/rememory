@@ -189,16 +189,12 @@ declare global {
     // Embedded constants
     WASM_BINARY?: string;
     VERSION?: string;
+    MAX_TOTAL_FILE_SIZE?: number;
 
     // Localized README filenames (embedded in recover.html)
     README_NAMES?: string[];
 
     // Selfhosted mode (only present in selfhosted builds, eliminated in static builds)
-    rememoryOnBundlesCreated?: (manifest: Uint8Array, meta: {
-      name: string;
-      threshold: number;
-      total: number;
-    }) => void;
     rememoryLoadManifest?: (data: Uint8Array, name?: string) => void;
     SELFHOSTED_CONFIG?: SelfhostedConfig | null;
 

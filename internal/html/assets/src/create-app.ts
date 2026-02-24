@@ -80,6 +80,12 @@ declare const __SELFHOSTED__: boolean;
     tlockUnit: 'd' as string,
   };
 
+  // Selfhosted callback for uploading the manifest after bundle generation.
+  // Assigned in the __SELFHOSTED__ block; null in standalone builds.
+  let onBundlesCreated: ((manifest: Uint8Array, meta: {
+    name: string; threshold: number; total: number;
+  }) => Promise<void>) | null = null;
+
   // DOM elements interface
   interface Elements {
     wasmLoadingIndicator: HTMLElement | null;
@@ -797,11 +803,9 @@ declare const __SELFHOSTED__: boolean;
 
   }
 
-  // Maximum total file size: selfhosted uses the server's configured limit,
-  // standalone uses 1 GB (matches core.MaxTotalSize in Go).
-  const maxTotalFileSize = (__SELFHOSTED__ && window.SELFHOSTED_CONFIG?.maxManifestSize)
-    ? window.SELFHOSTED_CONFIG.maxManifestSize
-    : 1024 * 1024 * 1024;
+  // Maximum total file size — injected by Go from core.MaxTotalSize (standalone)
+  // or the server's configured limit (selfhosted).
+  const maxTotalFileSize = window.MAX_TOTAL_FILE_SIZE ?? 1024 * 1024 * 1024;
 
   function getTotalFileSize(): number {
     let total = 0;
@@ -1031,8 +1035,8 @@ declare const __SELFHOSTED__: boolean;
 
       if (__SELFHOSTED__) {
         // Upload manifest to server (shares are never sent)
-        if (result.manifest && typeof window.rememoryOnBundlesCreated === 'function') {
-          window.rememoryOnBundlesCreated(result.manifest, {
+        if (result.manifest && onBundlesCreated) {
+          onBundlesCreated(result.manifest, {
             name: state.projectName,
             threshold: state.threshold,
             total: friends.length,
@@ -1213,7 +1217,7 @@ declare const __SELFHOSTED__: boolean;
 
     // Register the callback that fires after bundle generation.
     // Receives only the encrypted manifest and non-secret metadata — never bundles/shares.
-    window.rememoryOnBundlesCreated = async function(manifest: Uint8Array, meta: {
+    onBundlesCreated = async function(manifest: Uint8Array, meta: {
       name: string;
       threshold: number;
       total: number;

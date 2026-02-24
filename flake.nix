@@ -29,6 +29,11 @@
           vendorHash = "sha256-b5LSrwhujjMhsIErDYY22k7ZWiGl2zSMc5HcB1mqu0c=";
           proxyVendor = true; # Download deps during build instead of vendoring
 
+          # The go-modules derivation only fetches Go deps — skip TS/WASM build there
+          overrideModAttrs = old: {
+            preBuild = null;
+          };
+
           nativeBuildInputs = [ pkgs.esbuild pkgs.gnumake pkgs.nodejs pkgs.cacert ];
 
           npmDeps = pkgs.fetchNpmDeps {
@@ -46,6 +51,10 @@
             export HOME=$TMPDIR
             npm config set cache "$npmDeps"
             npm ci --ignore-scripts --prefer-offline
+            # Remove broken esbuild from node_modules — npm ci --ignore-scripts
+            # skips the postinstall that downloads the platform binary, leaving a
+            # broken wrapper that shadows the working esbuild from nativeBuildInputs.
+            rm -f node_modules/.bin/esbuild
             export PATH="$PWD/node_modules/.bin:$PATH"
             make wasm
           '';

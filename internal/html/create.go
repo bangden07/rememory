@@ -2,6 +2,7 @@ package html
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/eljojo/rememory/internal/core"
@@ -87,6 +88,13 @@ func GenerateMakerHTML(createWASMBytes []byte, opts MakerHTMLOptions) string {
 		html = strings.Replace(html, "{{SELFHOSTED_CONFIG}}", string(configJSON), 1)
 	} else {
 		html = strings.Replace(html, "{{SELFHOSTED_CONFIG}}", "null", 1)
+	}
+
+	// Inject maximum total file size from Go (the backend decides the value).
+	if opts.Selfhosted && opts.SelfhostedConfig != nil {
+		html = strings.Replace(html, "{{MAX_TOTAL_FILE_SIZE}}", strconv.Itoa(opts.SelfhostedConfig.MaxManifestSize), 1)
+	} else {
+		html = strings.Replace(html, "{{MAX_TOTAL_FILE_SIZE}}", strconv.Itoa(core.MaxTotalSize), 1)
 	}
 
 	// Tlock encryption is always included in maker.html — it's offline (no HTTP calls).
