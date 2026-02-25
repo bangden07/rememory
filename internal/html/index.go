@@ -43,31 +43,7 @@ func GenerateIndexHTML(selfhosted bool) string {
   <script>` + dataflowJS + `</script>` + i18nScript(I18nScriptOptions{
 			Component:         "index",
 			ExtraDeclarations: `const docsLangs = ` + DocsLanguagesJS() + `;`,
-			SetLanguageExtra: `// Update elements with inline HTML
-      document.querySelectorAll('[data-i18n-html]').forEach(el => {
-        const key = el.dataset.i18nHtml;
-        el.innerHTML = t(key);
-      });
-
-      // Update docs links to point to the correct language variant
-      const docsFile = (lang !== 'en' && docsLangs.indexOf(lang) !== -1)
-        ? 'docs.' + lang + '.html' : 'docs.html';
-      document.querySelectorAll('a[href^="docs."]').forEach(a => {
-        const h = a.getAttribute('href');
-        a.setAttribute('href', h.replace(/docs(?:\.[a-z]{2})?\.html/, docsFile));
-      });
-
-      // Update dataflow animation labels
-      if (window.setDataflowLabels) {
-        window.setDataflowLabels({
-          yourFile: t('anim_your_file'),
-          encrypt: t('anim_encrypt'),
-          split: t('anim_split'),
-          combine: t('anim_combine'),
-          recovered: t('anim_recovered'),
-          later: t('anim_later')
-        });
-      }`,
+			SetLanguageExtra:  i18nIndexSetlangJS,
 		}),
 	})
 

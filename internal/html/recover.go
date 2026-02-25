@@ -154,25 +154,12 @@ func GenerateRecoverHTML(personalization *PersonalizationData, opts ...RecoverHT
 	var scripts strings.Builder
 
 	// Translations
+	// Translations (docs link rewriting + rememoryUpdateUI are handled by core i18n.js)
 	scripts.WriteString(i18nScript(I18nScriptOptions{
-		Component: "recover",
-		UseNonce:  true,
-		DOMContentLoadedPre: `// If personalized with a language preference and no saved preference, use it
-      if (window.PERSONALIZATION && window.PERSONALIZATION.language && !localStorage.getItem('rememory-lang')) {
-        currentLang = window.PERSONALIZATION.language;
-      }
-
-      // Hide "Recover" link (current page) from the default nav
-      document.querySelector('#nav-links-main a[href="recover.html"]')?.remove();
-
-      // Toggle nav links: bundle mode shows only Guide (absolute), standalone shows all (relative)
-      if (window.PERSONALIZATION) {
-        document.getElementById('nav-links-main')?.classList.add('hidden');
-        document.getElementById('nav-links-bundle')?.classList.remove('hidden');
-      }`,
-		OnLangChange: `if (typeof window.rememoryUpdateUI === 'function') {
-          window.rememoryUpdateUI();
-        }`,
+		Component:           "recover",
+		UseNonce:            true,
+		ExtraDeclarations:   `const docsLangs = ` + DocsLanguagesJS() + `;`,
+		DOMContentLoadedPre: i18nRecoverInitJS,
 	}))
 
 	// Personalization data

@@ -256,6 +256,34 @@ friends:
     await creation.expectPageTitle('Criar Pacotes de Recuperação');
   });
 
+  test('nav guide link updates for languages with translated docs', async ({ page }) => {
+    const creation = new CreationPage(page, htmlPath);
+
+    await creation.open();
+
+    const guideLink = page.locator('#nav-links-main a[data-i18n="nav_guide"]');
+
+    // English: docs.html
+    await creation.setLanguage('en');
+    await expect(guideLink).toHaveAttribute('href', 'docs.html');
+
+    // German has translated docs — link should point to docs.de.html
+    await creation.setLanguage('de');
+    await expect(guideLink).toHaveAttribute('href', 'docs.de.html');
+
+    // Spanish has translated docs
+    await creation.setLanguage('es');
+    await expect(guideLink).toHaveAttribute('href', 'docs.es.html');
+
+    // Portuguese does NOT have translated docs — should stay docs.html
+    await creation.setLanguage('pt');
+    await expect(guideLink).toHaveAttribute('href', 'docs.html');
+
+    // Back to English
+    await creation.setLanguage('en');
+    await expect(guideLink).toHaveAttribute('href', 'docs.html');
+  });
+
   test('minimum 2 friends required — remove clears fields instead', async ({ page }) => {
     const creation = new CreationPage(page, htmlPath);
 

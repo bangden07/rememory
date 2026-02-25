@@ -92,6 +92,26 @@ var setupCSS string
 //go:embed assets/tlock-waiting.css
 var tlockWaitingCSS string
 
+// Page-specific JavaScript (extracted from Go to .js files)
+
+//go:embed assets/i18n.js
+var i18nJSTemplate string
+
+//go:embed assets/i18n-index-setlang.js
+var i18nIndexSetlangJS string
+
+//go:embed assets/i18n-recover-init.js
+var i18nRecoverInitJS string
+
+//go:embed assets/home.js
+var homeJS string
+
+//go:embed assets/setup.js
+var setupJS string
+
+//go:embed assets/wasm-loader.js
+var wasmLoaderJS string
+
 // createWASM is set at build time for the CLI binary (not for WASM builds)
 // This avoids circular dependency since create.wasm embeds the html package
 var createWASM []byte
