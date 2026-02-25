@@ -44,8 +44,6 @@
   "error_not_ready_message": "The bundle creator is still loading.",
   "error_import_title": "Import failed",
   "error_import_guidance": "Check that the YAML is well-formed, properly indented, and that each entry has a name.",
-  "error_min_friends_title": "Add more friends",
-  "error_min_friends_guidance": "You need at least 2 people. Add more to continue.",
   "error_generate_title": "Bundle creation failed",
   "error_generate_guidance": "Check that each friend has a name and that you've added at least one file.",
   "validation_title": "Some fields need attention",

@@ -44,8 +44,6 @@
   "error_not_ready_message": "Ustvarjalec svežnjev se še nalaga.",
   "error_import_title": "Uvoz ni uspel",
   "error_import_guidance": "Preverite, da je YAML pravilno oblikovan, z ustreznimi zamiki, in da ima vsak vnos ime.",
-  "error_min_friends_title": "Potrebno je dodati vsaj 2 prijatelja",
-  "error_min_friends_guidance": "Za delitev je potrebno vsaj 2 osebi. Dodajte več, da nadaljujete.",
   "error_generate_title": "Ustvarjanje svežnja ni uspelo",
   "error_generate_guidance": "Preverite, da ima vsak prijatelj ime in da ste dodali vsaj eno datoteko.",
   "validation_title": "Nekatera polja je potrebno dopolniti",

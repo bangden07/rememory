@@ -44,8 +44,6 @@
   "error_not_ready_message": "復原包建立工具還在載入中。",
   "error_import_title": "匯入失敗",
   "error_import_guidance": "請檢查 YAML 的格式、縮排正確，並確保每位朋友都有填寫姓名。",
-  "error_min_friends_title": "朋友人數不足",
-  "error_min_friends_guidance": "由於需要分割成至少 2 份，請加入更多朋友以繼續。",
   "error_generate_title": "復原包建立失敗",
   "error_generate_guidance": "請確認每位朋友都有姓名，並且已經加入至少 1 個檔案。",
   "validation_title": "有些欄位需要填寫",

@@ -110,68 +110,14 @@ func GenerateMakerHTML(createWASMBytes []byte, opts MakerHTMLOptions) string {
 	var scripts strings.Builder
 
 	// Translations
-	scripts.WriteString(`
-  <!-- Translations -->
-  <script nonce="{{CSP_NONCE}}">
-    const translations = ` + translations.GetTranslationsJS("maker") + `;
-
-    let currentLang = 'en';
-
-    function t(key, ...args) {
-      let text = translations[currentLang][key] || translations['en'][key] || key;
-      args.forEach((arg, i) => {
-        text = text.replace(` + "`{${i}}`" + `, arg);
-      });
-      return text;
-    }
-
-    function setLanguage(lang) {
-      currentLang = lang;
-      localStorage.setItem('rememory-lang', lang);
-
-      // Update select
-      const sel = document.getElementById('lang-select');
-      if (sel) sel.value = lang;
-
-      // Update all translatable elements
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.dataset.i18n;
-        el.textContent = t(key);
-      });
-
-      // Update placeholder attributes
-      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.dataset.i18nPlaceholder;
-        el.placeholder = t(key);
-      });
-
-      // Update page title
-      document.title = t('title');
-
-      // Re-render dynamic content
+	scripts.WriteString(i18nScript(I18nScriptOptions{
+		Component: "maker",
+		UseNonce:  true,
+		SetLanguageExtra: `// Re-render dynamic content
       if (typeof window.rememoryUpdateUI === 'function') {
         window.rememoryUpdateUI();
-      }
-    }
-
-    // Set initial language immediately
-    (function() {
-      const saved = localStorage.getItem('rememory-lang');
-      const langs = ` + translations.LangDetectJS() + `;
-      const detected = navigator.languages.find((l) => langs.includes(l))
-        || navigator.languages.map((l) => l.split('-')[0]).find((l) => langs.includes(l));
-      currentLang = saved || detected || 'en';
-    })();
-
-    // Initialize language select after DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      setLanguage(currentLang);
-
-      document.getElementById('lang-select')?.addEventListener('change', (e) => {
-        setLanguage(e.target.value);
-      });
-    });
-  </script>`)
+      }`,
+	}))
 
 	// WASM runtime
 	scripts.WriteString("\n\n  <!-- Go WASM runtime -->\n  <script nonce=\"{{CSP_NONCE}}\">" + wasmExecJS + "</script>")

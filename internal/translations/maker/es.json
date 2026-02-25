@@ -44,8 +44,6 @@
   "error_not_ready_message": "El creador de kits todavía se está iniciando.",
   "error_import_title": "Error en la importación",
   "error_import_guidance": "Revisa que el YAML esté bien formado, con la indentación correcta, y que cada entrada tenga un nombre.",
-  "error_min_friends_title": "Agrega más amigos",
-  "error_min_friends_guidance": "Necesitas al menos 2 personas. Agrega más para continuar.",
   "error_generate_title": "Error al crear kits",
   "error_generate_guidance": "Verifica que cada amigo tenga nombre y que hayas agregado al menos un archivo.",
   "validation_title": "Algunos campos necesitan atención",

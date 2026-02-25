@@ -44,8 +44,6 @@
   "error_not_ready_message": "O criador de pacotes ainda está carregando.",
   "error_import_title": "Falha na importação",
   "error_import_guidance": "Certifique-se de que o formato YAML está correto. Verifique a indentação adequada e que todos os campos obrigatórios (nome) estão presentes.",
-  "error_min_friends_title": "Adicione mais amigos",
-  "error_min_friends_guidance": "Você precisa de pelo menos 2 pessoas. Adicione mais para continuar.",
   "error_generate_title": "Falha na criação de pacotes",
   "error_generate_guidance": "Verifique se todos os amigos têm nomes e se você selecionou pelo menos um arquivo. Depois tente novamente.",
   "validation_title": "Alguns campos precisam de atenção",

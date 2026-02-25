@@ -40,47 +40,20 @@ func GenerateIndexHTML(selfhosted bool) string {
     <p class="version"><a href="{{GITHUB_REPO}}/blob/main/CHANGELOG.md" target="_blank" style="color: var(--text-muted); text-decoration: none;">{{VERSION}}</a></p>`,
 		Scripts: `<script>document.querySelector('#nav-links-main a[href="about.html"]')?.remove();</script>
 
-  <script>` + dataflowJS + `</script>
-
-  <!-- Translations -->
-  <script>
-    const translations = ` + translations.GetTranslationsJS("index") + `;
-    const docsLangs = ` + DocsLanguagesJS() + `;
-
-    let currentLang = 'en';
-
-    function t(key) {
-      return (translations[currentLang] && translations[currentLang][key])
-        || (translations['en'] && translations['en'][key])
-        || key;
-    }
-
-    function setLanguage(lang) {
-      currentLang = lang;
-      localStorage.setItem('rememory-lang', lang);
-
-      // Update select
-      var sel = document.getElementById('lang-select');
-      if (sel) sel.value = lang;
-
-      // Update text-only elements
-      document.querySelectorAll('[data-i18n]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n');
-        el.textContent = t(key);
-      });
-
-      // Update elements with inline HTML
-      document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n-html');
+  <script>` + dataflowJS + `</script>` + i18nScript(I18nScriptOptions{
+			Component:         "index",
+			ExtraDeclarations: `const docsLangs = ` + DocsLanguagesJS() + `;`,
+			SetLanguageExtra: `// Update elements with inline HTML
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.dataset.i18nHtml;
         el.innerHTML = t(key);
       });
 
       // Update docs links to point to the correct language variant
-      // Only rewrite if a translated guide exists for this language
-      var docsFile = (lang !== 'en' && docsLangs.indexOf(lang) !== -1)
+      const docsFile = (lang !== 'en' && docsLangs.indexOf(lang) !== -1)
         ? 'docs.' + lang + '.html' : 'docs.html';
-      document.querySelectorAll('a[href^="docs."]').forEach(function(a) {
-        var h = a.getAttribute('href');
+      document.querySelectorAll('a[href^="docs."]').forEach(a => {
+        const h = a.getAttribute('href');
         a.setAttribute('href', h.replace(/docs(?:\.[a-z]{2})?\.html/, docsFile));
       });
 
@@ -94,26 +67,8 @@ func GenerateIndexHTML(selfhosted bool) string {
           recovered: t('anim_recovered'),
           later: t('anim_later')
         });
-      }
-    }
-
-    // Set initial language
-    (function() {
-      var saved = localStorage.getItem('rememory-lang');
-      var langs = ` + translations.LangDetectJS() + `;
-      var detected = navigator.languages.find(function(l) { return langs.indexOf(l) !== -1; })
-        || navigator.languages.map(function(l) { return l.split('-')[0]; }).find(function(l) { return langs.indexOf(l) !== -1; });
-      currentLang = saved || detected || 'en';
-    })();
-
-    document.addEventListener('DOMContentLoaded', function() {
-      setLanguage(currentLang);
-
-      document.getElementById('lang-select').addEventListener('change', function(e) {
-        setLanguage(e.target.value);
-      });
-    });
-  </script>`,
+      }`,
+		}),
 	})
 
 	return result
